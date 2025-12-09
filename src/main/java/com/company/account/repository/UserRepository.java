@@ -1,6 +1,7 @@
 package com.company.account.repository;
 
 import com.company.account.entity.User;
+import com.company.account.entity.User.UserRole;
 import com.company.account.entity.User.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,27 +28,32 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUserIdAndStatus(Long userId, UserStatus status);
 
-    // 페이지네이션
-    Page<User> findAll(Pageable pageable);
+    // 페이지네이션 (관리자 제외)
+    @Query("SELECT u FROM User u WHERE u.role <> :excludeRole")
+    Page<User> findAllUsersOnly(@Param("excludeRole") UserRole excludeRole, Pageable pageable);
 
-    Page<User> findByStatus(UserStatus status, Pageable pageable);
+    @Query("SELECT u FROM User u WHERE u.status = :status AND u.role <> :excludeRole")
+    Page<User> findByStatusUsersOnly(@Param("status") UserStatus status, @Param("excludeRole") UserRole excludeRole, Pageable pageable);
 
-    // 검색 기능 (이름, 이메일, 닉네임)
+    // 검색 기능 (이름, 이메일, 닉네임) - 관리자 제외
     @Query("SELECT u FROM User u WHERE " +
+            "u.role <> :excludeRole AND " +
             "(:keyword IS NULL OR " +
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(u.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<User> searchUsers(@Param("keyword") String keyword, Pageable pageable);
+    Page<User> searchUsersOnly(@Param("keyword") String keyword, @Param("excludeRole") UserRole excludeRole, Pageable pageable);
 
-    // 검색 + 상태별 필터
+    // 검색 + 상태별 필터 - 관리자 제외
     @Query("SELECT u FROM User u WHERE " +
+            "u.role <> :excludeRole AND " +
             "u.status = :status AND " +
             "(:keyword IS NULL OR " +
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(u.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<User> searchUsersByStatus(@Param("keyword") String keyword,
+    Page<User> searchUsersByStatusUsersOnly(@Param("keyword") String keyword,
                                      @Param("status") UserStatus status,
+                                     @Param("excludeRole") UserRole excludeRole,
                                      Pageable pageable);
 }

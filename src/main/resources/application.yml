@@ -49,3 +49,11 @@ logging:
   level:
     com.company.account: DEBUG
     org.springframework: INFO
+
+# 초기 관리자 계정 설정
+app:
+  admin:
+    email: ${ADMIN_EMAIL:admin@passit.com}
+    password: ${ADMIN_PASSWORD:admin123!}
+    name: ${ADMIN_NAME:관리자}
+    nickname: ${ADMIN_NICKNAME:admin}

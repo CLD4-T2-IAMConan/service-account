@@ -231,16 +231,16 @@ public class UserService {
         if (keyword == null || keyword.trim().isEmpty()) {
             // 검색어 없음
             if (status == null) {
-                userPage = userRepository.findAll(pageable);
+                userPage = userRepository.findAllUsersOnly(User.UserRole.ADMIN, pageable);
             } else {
-                userPage = userRepository.findByStatus(status, pageable);
+                userPage = userRepository.findByStatusUsersOnly(status, User.UserRole.ADMIN, pageable);
             }
         } else {
             // 검색어 있음
             if (status == null) {
-                userPage = userRepository.searchUsers(keyword, pageable);
+                userPage = userRepository.searchUsersOnly(keyword, User.UserRole.ADMIN, pageable);
             } else {
-                userPage = userRepository.searchUsersByStatus(keyword, status, pageable);
+                userPage = userRepository.searchUsersByStatusUsersOnly(keyword, status, User.UserRole.ADMIN, pageable);
             }
         }
 
