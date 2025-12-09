@@ -1,0 +1,77 @@
+package com.company.account.dto;
+
+import com.company.account.entity.User.SocialProvider;
+import com.company.account.entity.User.UserRole;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+public class UserRequest {
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Create {
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "유효한 이메일 형식이어야 합니다")
+        private String email;
+
+        @NotBlank(message = "비밀번호는 필수입니다")
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
+        private String password;
+
+        @NotBlank(message = "이름은 필수입니다")
+        @Size(max = 50, message = "이름은 최대 50자까지 입니다")
+        private String name;
+
+        @Size(max = 50, message = "닉네임은 최대 50자까지 입니다")
+        private String nickname;
+
+        private String profileImageUrl;
+
+        private SocialProvider provider;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Update {
+        @Size(max = 50, message = "이름은 최대 50자까지 입니다")
+        private String name;
+
+        @Size(max = 50, message = "닉네임은 최대 50자까지 입니다")
+        private String nickname;
+
+        private String profileImageUrl;
+
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
+        private String password;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateRole {
+        private UserRole role;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Login {
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "유효한 이메일 형식이어야 합니다")
+        private String email;
+
+        @NotBlank(message = "비밀번호는 필수입니다")
+        private String password;
+    }
+}
