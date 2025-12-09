@@ -195,7 +195,7 @@ docker-compose down
 ### Health Check 확인
 
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 응답 예시:
@@ -322,7 +322,7 @@ kubectl logs -f <pod-name>
 #### 5) 포트 포워딩으로 접근
 
 ```bash
-kubectl port-forward svc/template-service 8080:80
+kubectl port-forward svc/template-service 8081:80
 ```
 
 ### Helm

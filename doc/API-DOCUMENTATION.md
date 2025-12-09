@@ -583,7 +583,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 환경 변수
 ```json
 {
-  "baseUrl": "http://localhost:8080",
+  "baseUrl": "http://localhost:8081",
   "userEmail": "test@example.com",
   "userId": "1",
   "accessToken": "",
@@ -603,12 +603,12 @@ cd service-account
 
 ### 2. Health Check
 ```bash
-curl http://localhost:8080/actuator/health
+curl http://localhost:8081/actuator/health
 ```
 
 ### 3. 회원가입 테스트
 ```bash
-curl -X POST http://localhost:8080/api/auth/signup \
+curl -X POST http://localhost:8081/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -623,7 +623,7 @@ curl -X POST http://localhost:8080/api/auth/signup \
 
 ### 5. 이메일 인증
 ```bash
-curl -X POST http://localhost:8080/api/auth/verify-email \
+curl -X POST http://localhost:8081/api/auth/verify-email \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -633,7 +633,7 @@ curl -X POST http://localhost:8080/api/auth/verify-email \
 
 ### 6. 로그인
 ```bash
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8081/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",

@@ -181,7 +181,7 @@ Gmail은 개발/테스트용으로만 사용하고, 프로덕션에서는 AWS SE
 ./gradlew bootRun
 
 # 회원가입 API 호출
-curl -X POST http://localhost:8080/api/auth/signup \
+curl -X POST http://localhost:8081/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -200,7 +200,7 @@ MAIL_PASSWORD=your-app-password \
 ./gradlew bootRun --args='--spring.profiles.active=smtp'
 
 # 회원가입 API 호출
-curl -X POST http://localhost:8080/api/auth/signup \
+curl -X POST http://localhost:8081/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "real-email@example.com",

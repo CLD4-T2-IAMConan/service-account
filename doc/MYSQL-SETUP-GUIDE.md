@@ -59,7 +59,7 @@ services:
       DB_USER: passit_user
       DB_PASSWORD: passit_password
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       mysql:
         condition: service_healthy
@@ -99,7 +99,7 @@ DB_PASSWORD=passit_password
 
 # Application Configuration
 SPRING_PROFILES_ACTIVE=default
-SERVER_PORT=8080
+SERVER_PORT=8081
 
 # Email Configuration (SMTP 프로필 사용 시 필요)
 MAIL_USERNAME=your-email@gmail.com
@@ -258,7 +258,7 @@ SELECT * FROM users;
 
 ```bash
 # Health endpoint 확인
-curl http://localhost:8080/actuator/health
+curl http://localhost:8081/actuator/health
 
 # 응답 예시:
 # {

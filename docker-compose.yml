@@ -13,7 +13,7 @@ services:
       DB_USER: passit_user
       DB_PASSWORD: passit_password
     ports:
-      - "8080:8080"
+      - "8081:8081"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

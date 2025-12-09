@@ -80,7 +80,7 @@ kubectl get services
 echo ""
 echo "=========================================="
 echo "To access the service:"
-echo "  kubectl port-forward svc/${SERVICE_NAME} 8080:80"
+echo "  kubectl port-forward svc/${SERVICE_NAME} 8081:80"
 echo ""
 echo "To view logs:"
 echo "  kubectl logs -f deployment/${SERVICE_NAME}"
