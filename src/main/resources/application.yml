@@ -47,5 +47,5 @@ management:
 
 logging:
   level:
-    com.company.template: DEBUG
+    com.company.account: DEBUG
     org.springframework: INFO
