@@ -114,6 +114,10 @@ public class UserService {
             user.setProfileImageUrl(request.getProfileImageUrl());
         }
 
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
@@ -197,6 +201,40 @@ public class UserService {
         log.info("User activated successfully: {}", userId);
 
         return UserResponse.fromEntity(updatedUser);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, UserRequest.ChangePassword request) {
+        log.info("Changing password for user with ID: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+        }
+
+        // 새 비밀번호 설정
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        log.info("Password changed successfully for user: {}", userId);
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyPassword(Long userId, UserRequest.VerifyPassword request) {
+        log.info("Verifying password for user with ID: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+
+        // 비밀번호 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
+
+        log.info("Password verified successfully for user: {}", userId);
     }
 
     /**

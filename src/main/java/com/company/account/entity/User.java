@@ -54,6 +54,9 @@ public class User {
     @Column(name = "nickname", unique = true, length = 50)
     private String nickname;
 
+    @Column(name = "phone", length = 20)
+    private String phone;
+
     @Column(name = "profile_image_url", length = 255)
     private String profileImageUrl;
 

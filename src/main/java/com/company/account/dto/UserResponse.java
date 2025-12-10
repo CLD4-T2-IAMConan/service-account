@@ -25,6 +25,7 @@ public class UserResponse {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
     private String nickname;
+    private String phone;
     private String profileImageUrl;
     private SocialProvider provider;
     private LocalDateTime lastLoginAt;
@@ -40,6 +41,7 @@ public class UserResponse {
                 .updatedAt(user.getUpdatedAt())
                 .deletedAt(user.getDeletedAt())
                 .nickname(user.getNickname())
+                .phone(user.getPhone())
                 .profileImageUrl(user.getProfileImageUrl())
                 .provider(user.getProvider())
                 .lastLoginAt(user.getLastLoginAt())

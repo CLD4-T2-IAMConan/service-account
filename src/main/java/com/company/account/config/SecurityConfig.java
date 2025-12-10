@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/actuator/**",          // Health Check
                                 "/error"
                         ).permitAll()
+                        // 내 정보 관리 엔드포인트 (인증된 사용자만)
+                        .requestMatchers("/api/users/me/**").authenticated()
                         // 관리자 전용 엔드포인트 (회원 관리)
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // 나머지는 인증 필요

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,82 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "사용자가 성공적으로 생성되었습니다"));
+    }
+
+    /**
+     * 내 정보 조회
+     * GET /api/users/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to get my info for user ID: {}", userId);
+
+        UserResponse response = userService.getUserById(userId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 내 정보 수정
+     * PATCH /api/users/me
+     */
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyInfo(
+            Authentication authentication,
+            @Valid @RequestBody UserRequest.Update request) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to update my info for user ID: {}", userId);
+
+        UserResponse response = userService.updateUser(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "내 정보가 수정되었습니다"));
+    }
+
+    /**
+     * 내 계정 삭제 (탈퇴)
+     * DELETE /api/users/me
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteMyAccount(Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to delete my account for user ID: {}", userId);
+
+        userService.deleteUser(userId);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "계정이 탈퇴되었습니다"));
+    }
+
+    /**
+     * 비밀번호 변경
+     * POST /api/users/me/password
+     */
+    @PostMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            Authentication authentication,
+            @Valid @RequestBody UserRequest.ChangePassword request) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to change password for user ID: {}", userId);
+
+        userService.changePassword(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "비밀번호가 변경되었습니다"));
+    }
+
+    /**
+     * 비밀번호 확인
+     * POST /api/users/me/verify-password
+     */
+    @PostMapping("/me/verify-password")
+    public ResponseEntity<ApiResponse<Void>> verifyPassword(
+            Authentication authentication,
+            @Valid @RequestBody UserRequest.VerifyPassword request) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to verify password for user ID: {}", userId);
+
+        userService.verifyPassword(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "비밀번호가 확인되었습니다"));
     }
 
     /**
