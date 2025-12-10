@@ -7,9 +7,11 @@ import com.company.account.dto.UserResponse;
 import com.company.account.entity.User;
 import com.company.account.service.AuthService;
 import com.company.account.service.EmailVerificationService;
+import com.company.account.service.KakaoAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,10 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailVerificationService emailVerificationService;
+    private final KakaoAuthService kakaoAuthService;
+
+    @Value("${kakao.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
 
     /**
      * 회원가입
@@ -118,5 +124,77 @@ public class AuthController {
         AuthResponse.TokenResponse response = authService.refreshAccessToken(request.getRefreshToken());
 
         return ResponseEntity.ok(ApiResponse.success(response, "토큰 갱신 성공"));
+    }
+
+    /**
+     * 카카오 로그인 시작 (카카오 로그인 페이지로 리다이렉트)
+     * GET /api/auth/kakao
+     */
+    @GetMapping("/kakao")
+    public ResponseEntity<Void> kakaoLogin() {
+        log.info("Request to start Kakao login");
+        String kakaoLoginUrl = kakaoAuthService.getKakaoLoginUrl();
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", kakaoLoginUrl)
+                .build();
+    }
+
+    /**
+     * 카카오 로그인 콜백
+     * GET /api/auth/kakao/callback
+     */
+    @GetMapping("/kakao/callback")
+    public ResponseEntity<Void> kakaoCallback(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "error_description", required = false) String errorDescription) {
+        log.info("Kakao callback received. Code: {}, Error: {}", code, error);
+
+        if (error != null) {
+            log.error("Kakao login error: {}", errorDescription);
+            // 에러 발생 시 프론트엔드 로그인 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed")
+                    .build();
+        }
+
+        if (code == null || code.isEmpty()) {
+            log.error("Kakao authorization code is missing");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed")
+                    .build();
+        }
+
+        try {
+            // 카카오 로그인 처리
+            AuthResponse.LoginResponse loginResponse = authService.loginWithKakao(code);
+
+            // 프론트엔드로 리다이렉트 (토큰을 쿼리 파라미터로 전달)
+            String redirectUrl = String.format(
+                    "%s/auth/kakao/callback?token=%s&refreshToken=%s&userId=%d&email=%s&name=%s",
+                    getFrontendUrl(),
+                    loginResponse.getAccessToken(),
+                    loginResponse.getRefreshToken(),
+                    loginResponse.getUserId(),
+                    loginResponse.getEmail(),
+                    loginResponse.getName()
+            );
+
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", redirectUrl)
+                    .build();
+        } catch (Exception e) {
+            log.error("Error processing Kakao login", e);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed&message=" + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * 프론트엔드 URL 가져오기
+     */
+    private String getFrontendUrl() {
+        return frontendUrl;
     }
 }
