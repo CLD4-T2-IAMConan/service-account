@@ -210,9 +210,20 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
 
-        // 현재 비밀번호 확인
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+        // 소셜 로그인 사용자인지 확인
+        boolean isSocialUser = user.getProvider() != null;
+
+        if (isSocialUser) {
+            // 소셜 로그인 사용자: 기존 비밀번호 확인 없이 새 비밀번호만 설정
+            log.info("Social user detected. Setting new password without old password verification");
+        } else {
+            // 일반 사용자: 현재 비밀번호 확인 필요
+            if (request.getOldPassword() == null || request.getOldPassword().trim().isEmpty()) {
+                throw new IllegalArgumentException("현재 비밀번호를 입력해주세요");
+            }
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+            }
         }
 
         // 새 비밀번호 설정
@@ -220,6 +231,29 @@ public class UserService {
         userRepository.save(user);
 
         log.info("Password changed successfully for user: {}", userId);
+    }
+
+    /**
+     * 비밀번호 설정 (소셜 로그인 사용자 전용)
+     * 기존 비밀번호 확인 없이 새 비밀번호만 설정
+     */
+    @Transactional
+    public void setPassword(Long userId, UserRequest.SetPassword request) {
+        log.info("Setting password for user with ID: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+
+        // 소셜 로그인 사용자인지 확인
+        if (user.getProvider() == null) {
+            throw new IllegalArgumentException("일반 계정은 비밀번호 설정 기능을 사용할 수 없습니다. 비밀번호 변경 기능을 사용해주세요");
+        }
+
+        // 새 비밀번호 설정
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        log.info("Password set successfully for social user: {}", userId);
     }
 
     @Transactional(readOnly = true)

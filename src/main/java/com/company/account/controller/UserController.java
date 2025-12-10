@@ -87,6 +87,8 @@ public class UserController {
     /**
      * 비밀번호 변경
      * POST /api/users/me/password
+     * - 일반 사용자: 기존 비밀번호 확인 후 변경
+     * - 소셜 로그인 사용자: 기존 비밀번호 확인 없이 변경 가능
      */
     @PostMapping("/me/password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
@@ -98,6 +100,23 @@ public class UserController {
         userService.changePassword(userId, request);
 
         return ResponseEntity.ok(ApiResponse.success(null, "비밀번호가 변경되었습니다"));
+    }
+
+    /**
+     * 비밀번호 설정 (소셜 로그인 사용자 전용)
+     * POST /api/users/me/set-password
+     * 기존 비밀번호 확인 없이 새 비밀번호만 설정
+     */
+    @PostMapping("/me/set-password")
+    public ResponseEntity<ApiResponse<Void>> setPassword(
+            Authentication authentication,
+            @Valid @RequestBody UserRequest.SetPassword request) {
+        Long userId = Long.valueOf(authentication.getName());
+        log.info("Request to set password for user ID: {}", userId);
+
+        userService.setPassword(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "비밀번호가 설정되었습니다"));
     }
 
     /**

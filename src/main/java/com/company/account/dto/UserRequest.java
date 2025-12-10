@@ -83,7 +83,7 @@ public class UserRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChangePassword {
-        @NotBlank(message = "현재 비밀번호는 필수입니다")
+        // 소셜 로그인 사용자의 경우 oldPassword는 선택사항
         private String oldPassword;
 
         @NotBlank(message = "새 비밀번호는 필수입니다")
@@ -98,5 +98,19 @@ public class UserRequest {
     public static class VerifyPassword {
         @NotBlank(message = "비밀번호는 필수입니다")
         private String password;
+    }
+
+    /**
+     * 비밀번호 설정 (소셜 로그인 사용자용)
+     * 기존 비밀번호 확인 없이 새 비밀번호만 설정
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SetPassword {
+        @NotBlank(message = "새 비밀번호는 필수입니다")
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
+        private String newPassword;
     }
 }

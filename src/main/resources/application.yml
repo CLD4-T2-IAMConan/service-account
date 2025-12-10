@@ -57,3 +57,13 @@ app:
     password: ${ADMIN_PASSWORD:admin123!}
     name: ${ADMIN_NAME:관리자}
     nickname: ${ADMIN_NICKNAME:admin}
+
+# 카카오 로그인 설정
+# 주의: redirect-uri는 카카오 개발자 콘솔에 등록된 백엔드 콜백 URL이어야 합니다
+# 예: http://localhost:8081/api/auth/kakao/callback
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:39a378862f9d8845f6adccca55348bfa}
+  client-secret: ${KAKAO_CLIENT_SECRET:yxzmC0zYJgFDx1wrOZVElMn9W9KTXiyB}
+  admin-key: ${KAKAO_ADMIN_KEY:39a378862f9d8845f6adccca55348bfa}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}

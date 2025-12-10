@@ -15,7 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -153,15 +156,30 @@ public class AuthController {
         if (error != null) {
             log.error("Kakao login error: {}", errorDescription);
             // 에러 발생 시 프론트엔드 로그인 페이지로 리다이렉트
+            String errorMessage = errorDescription != null ? errorDescription : error;
+            String errorUrl = UriComponentsBuilder.fromHttpUrl(getFrontendUrl())
+                    .path("/auth")
+                    .queryParam("error", "kakao_login_failed")
+                    .queryParam("message", errorMessage)
+                    .build()
+                    .toUri()
+                    .toASCIIString();
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed")
+                    .header("Location", errorUrl)
                     .build();
         }
 
         if (code == null || code.isEmpty()) {
             log.error("Kakao authorization code is missing");
+            String errorUrl = UriComponentsBuilder.fromHttpUrl(getFrontendUrl())
+                    .path("/auth")
+                    .queryParam("error", "kakao_login_failed")
+                    .queryParam("message", "인증 코드가 없습니다")
+                    .build()
+                    .toUri()
+                    .toASCIIString();
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed")
+                    .header("Location", errorUrl)
                     .build();
         }
 
@@ -170,23 +188,37 @@ public class AuthController {
             AuthResponse.LoginResponse loginResponse = authService.loginWithKakao(code);
 
             // 프론트엔드로 리다이렉트 (토큰을 쿼리 파라미터로 전달)
-            String redirectUrl = String.format(
-                    "%s/auth/kakao/callback?token=%s&refreshToken=%s&userId=%d&email=%s&name=%s",
-                    getFrontendUrl(),
-                    loginResponse.getAccessToken(),
-                    loginResponse.getRefreshToken(),
-                    loginResponse.getUserId(),
-                    loginResponse.getEmail(),
-                    loginResponse.getName()
-            );
+            // UriComponentsBuilder를 사용하여 URL 인코딩 처리
+            // 한글 등 특수문자가 포함된 경우를 위해 toASCIIString() 사용
+            String redirectUrl = UriComponentsBuilder.fromHttpUrl(getFrontendUrl())
+                    .path("/auth/kakao/callback")
+                    .queryParam("token", loginResponse.getAccessToken())
+                    .queryParam("refreshToken", loginResponse.getRefreshToken())
+                    .queryParam("userId", loginResponse.getUserId())
+                    .queryParam("email", loginResponse.getEmail())
+                    .queryParam("name", loginResponse.getName())
+                    .queryParam("provider", loginResponse.getProvider() != null ? loginResponse.getProvider() : "")
+                    .build()
+                    .toUri()
+                    .toASCIIString();
+
+            log.info("Redirecting to frontend: {}", redirectUrl);
 
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", redirectUrl)
                     .build();
         } catch (Exception e) {
             log.error("Error processing Kakao login", e);
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "알 수 없는 오류가 발생했습니다";
+            String errorUrl = UriComponentsBuilder.fromHttpUrl(getFrontendUrl())
+                    .path("/auth")
+                    .queryParam("error", "kakao_login_failed")
+                    .queryParam("message", errorMessage)
+                    .build()
+                    .toUri()
+                    .toASCIIString();
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", getFrontendUrl() + "/auth?error=kakao_login_failed&message=" + e.getMessage())
+                    .header("Location", errorUrl)
                     .build();
         }
     }

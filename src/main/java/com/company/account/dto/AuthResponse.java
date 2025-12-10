@@ -21,6 +21,7 @@ public class AuthResponse {
         private String email;
         private String name;
         private String role;
+        private String provider; // 소셜 로그인 제공자 (KAKAO, NAVER, GOOGLE 등)
         private String accessToken;
         private String refreshToken;
         private LocalDateTime expiresAt;
