@@ -28,3 +28,19 @@ logging:
   level:
     com.company.account: DEBUG
     org.springframework: INFO
+
+# 초기 관리자 계정 설정 (테스트용)
+app:
+  admin:
+    email: admin@test.com
+    password: admin123!
+    name: 테스트 관리자
+    nickname: admin
+
+# 카카오 로그인 설정 (테스트용)
+kakao:
+  rest-api-key: test-rest-api-key
+  client-secret: test-client-secret
+  admin-key: test-admin-key
+  redirect-uri: http://localhost:8081/api/auth/kakao/callback
+  frontend-url: http://localhost:3000
