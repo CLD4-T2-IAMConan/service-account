@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@Profile({"default", "local", "dev"})
+@Profile({"default", "local", "dev", "test"})
 public class LocalEmailService implements EmailService {
 
     @Override

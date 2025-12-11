@@ -18,16 +18,16 @@ public class KakaoAuthService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${kakao.rest-api-key}")
+    @Value("${kakao.rest-api-key:test-rest-api-key}")
     private String restApiKey;
 
     @Value("${kakao.client-secret:}")
     private String clientSecret;
 
-    @Value("${kakao.redirect-uri}")
+    @Value("${kakao.redirect-uri:http://localhost:8081/api/auth/kakao/callback}")
     private String redirectUri;
 
-    @Value("${kakao.admin-key}")
+    @Value("${kakao.admin-key:test-admin-key}")
     private String adminKey;
 
     /**
