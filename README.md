@@ -1,52 +1,78 @@
-# MSA Service Template
+# Service Account
 
-MSA(Service 단위) Spring Boot 기본 템플릿 레포지토리입니다.
-모든 신규 서비스는 이 템플릿을 기반으로 빠르고 일관성 있게 생성할 수 있습니다.
+Passit 프로젝트의 사용자 계정 관리 마이크로서비스입니다.
 
 ## 목차
 
 - [프로젝트 개요](#프로젝트-개요)
+- [주요 기능](#주요-기능)
 - [기술 스택](#기술-스택)
 - [시작하기](#시작하기)
-- [템플릿 사용 방법](#템플릿-사용-방법)
-- [로컬 개발 환경](#로컬-개발-환경)
-- [프로젝트 구조](#프로젝트-구조)
-- [배포](#배포)
 - [API 문서](#api-문서)
+- [환경 변수](#환경-변수)
 - [개발 규칙](#개발-규칙)
-- [IntelliJ IDEA 추천 설정](#intellij-idea-추천-설정)
 
 ## 프로젝트 개요
 
-이 템플릿은 MSA 기반 Spring Boot 서비스를 빠르게 시작할 수 있도록 다음을 제공합니다:
+Service Account는 Passit 플랫폼의 사용자 인증 및 계정 관리를 담당하는 독립적인 마이크로서비스입니다.
 
-- Spring Boot 3.x 기반 프로젝트 구조
-- Docker & Docker Compose 설정
-- Kubernetes 매니페스트 및 Helm Chart
-- GitHub Actions CI/CD 파이프라인
-- 공통 API 응답 형식 및 예외 처리
-- Health Check 엔드포인트
+### 주요 책임
+
+- 사용자 회원가입 및 로그인
+- JWT 기반 토큰 인증/인가
+- 이메일 인증
+- 소셜 로그인 (카카오)
+- 사용자 프로필 관리
+- 계정 상태 관리
+
+## 주요 기능
+
+### 인증 (Authentication)
+
+- **회원가입**: 이메일 기반 회원가입 및 이메일 인증
+- **로그인**: 이메일/비밀번호 기반 로그인
+- **소셜 로그인**: 카카오 OAuth 2.0 연동
+- **토큰 관리**: JWT Access Token 및 Refresh Token 발급/갱신
+- **로그아웃**: 토큰 무효화
+
+### 사용자 관리
+
+- **프로필 조회/수정**: 내 정보 조회 및 업데이트
+- **비밀번호 관리**: 비밀번호 변경/설정/확인
+- **계정 탈퇴**: 소프트 삭제 방식의 계정 탈퇴
+- **사용자 검색**: 키워드, 상태별 검색 및 페이지네이션
+- **상태 관리**: 활성화/정지/삭제 상태 관리
+
+### 관리자 기능
+
+- 사용자 목록 조회 (검색, 필터링, 페이지네이션)
+- 사용자 권한 변경
+- 사용자 계정 정지/활성화
+- 사용자 영구 삭제
 
 ## 기술 스택
 
 ### Backend
 
 - **Java**: 17
-- **Spring Boot**: 3.2.x
+- **Spring Boot**: 3.2.0
 - **Spring Data JPA**: 데이터베이스 접근
-- **Spring Validation**: 요청 검증
+- **Spring Security**: 보안 및 인증/인가
+- **Spring Validation**: 요청 데이터 검증
+- **Spring Mail**: 이메일 발송
+- **JWT**: JSON Web Token 인증 (io.jsonwebtoken:jjwt)
 - **Lombok**: 보일러플레이트 코드 감소
 
 ### Database
 
-- **PostgreSQL**: 16
+- **MySQL**: 8.0+
 
-### DevOps
+### Testing
 
-- **Docker**: 컨테이너화
-- **Kubernetes**: 오케스트레이션
-- **Helm**: 패키지 관리
-- **GitHub Actions**: CI/CD
+- **JUnit 5**: 단위 테스트
+- **Spring Security Test**: 보안 테스트
+- **REST Assured**: API 통합 테스트
+- **Testcontainers**: 컨테이너 기반 통합 테스트
 
 ### Build Tool
 
@@ -63,136 +89,70 @@ MSA(Service 단위) Spring Boot 기본 템플릿 레포지토리입니다.
 | IntelliJ IDEA  | 최신 (Community/Ultimate) | [JetBrains](https://www.jetbrains.com/idea/)             |
 | JDK            | 17                        | [Adoptium](https://adoptium.net)                         |
 | Docker Desktop | 최신                      | [Docker](https://www.docker.com/products/docker-desktop) |
-| kubectl        | 1.27+                     | [Kubernetes](https://kubernetes.io)                      |
-| kind           | 최신                      | [kind](https://kind.sigs.k8s.io)                         |
-| Helm           | 최신                      | [Helm](https://helm.sh)                                  |
 | Git            | 최신                      | [Git](https://git-scm.com)                               |
 
-## 템플릿 사용 방법
+### 로컬 개발 환경 설정
 
-### 1. 템플릿에서 새 리포지토리 생성
-
-1. GitHub에서 이 리포지토리 페이지로 이동
-2. 우측 상단 **Use this template** 버튼 클릭
-3. 새 리포지토리 이름 입력 (예: `service-account`, `service-ticket`)
-4. **Create repository** 클릭
-
-### 2. 로컬로 클론
+#### 1. 리포지토리 클론
 
 ```bash
-git clone https://github.com/your-org/your-service-name.git
-cd your-service-name
+git clone https://github.com/your-org/service-account.git
+cd service-account
 ```
 
-### 3. 프로젝트 설정 변경
-
-다음 파일들에서 `template`을 실제 서비스 이름으로 변경하세요:
-
-#### 필수 변경 파일:
-
-- `settings.gradle`: `rootProject.name`
-- `src/main/resources/application.yml`: `spring.application.name`
-- `src/main/java/com/company/template/`: 패키지명 변경
-- `helm/Chart.yaml`: `name`, `description`
-- `helm/values.yaml`: 이미지 이름 등
-
-#### 자동 변경 스크립트 (선택):
-
-```bash
-./scripts/rename-service.sh your-service-name
-```
-
-## 로컬 개발 환경
-
-### 방법 1: Docker Compose 사용 (권장)
-
-#### 1) 데이터베이스 시작
-
-```bash
-docker-compose up -d postgres
-```
-
-#### 2) 애플리케이션 실행
-
-```bash
-./gradlew bootRun
-```
-
-#### 3) 전체 스택 실행 (앱 + DB)
+#### 2. 데이터베이스 시작 (Docker Compose)
 
 ```bash
 docker-compose up -d
 ```
 
-#### 4) 종료
+MySQL 컨테이너가 포트 3307에서 실행됩니다.
+
+#### 3. 환경 변수 설정
+
+필요한 경우 `.env` 파일을 생성하거나 환경 변수를 설정하세요:
 
 ```bash
-docker-compose down
+# 데이터베이스
+export DB_HOST=localhost
+export DB_PORT=3307
+export DB_NAME=passit_db
+export DB_USER=passit_user
+export DB_PASSWORD=passit_password
+
+# 이메일 (Gmail)
+export MAIL_USERNAME=your-email@gmail.com
+export MAIL_PASSWORD=your-app-password
+
+# 카카오 OAuth
+export KAKAO_REST_API_KEY=your-kakao-rest-api-key
+export KAKAO_CLIENT_SECRET=your-kakao-client-secret
+export KAKAO_REDIRECT_URI=http://localhost:8081/api/auth/kakao/callback
+export FRONTEND_URL=http://localhost:3000
+
+# 관리자 계정
+export ADMIN_EMAIL=admin@passit.com
+export ADMIN_PASSWORD=admin123!
+export ADMIN_NAME=관리자
 ```
 
-### 방법 2: IntelliJ IDEA 사용 (권장)
+#### 4. 애플리케이션 실행
 
-#### 1) 프로젝트 열기
-
-1. IntelliJ IDEA 실행
-2. `File > Open` 선택
-3. 프로젝트 루트 디렉토리 선택 (`build.gradle` 파일이 있는 위치)
-4. `Open as Project` 클릭
-5. Gradle 프로젝트가 자동으로 import 됨
-
-#### 2) JDK 설정 확인
-
-1. `File > Project Structure` (`Cmd+;` 또는 `Ctrl+Alt+Shift+S`)
-2. `Project` 섹션에서 SDK를 `17` 이상으로 설정
-3. Language level도 `17`로 설정
-
-#### 3) 애플리케이션 실행
-
-1. `src/main/java/com/company/template/TemplateApplication.java` 파일 열기
-2. 파일 내 `main` 메서드 왼쪽의 ▶️ 버튼 클릭
-3. `Run 'TemplateApplication'` 선택
-
-또는 상단 메뉴:
-
-- `Run > Run...` 선택 후 `TemplateApplication` 선택
-
-#### 4) 빌드
-
-- **전체 프로젝트 빌드**: `Build > Build Project` (`Cmd+F9` 또는 `Ctrl+F9`)
-- **Gradle 빌드**: 우측 Gradle 패널 > `Tasks > build > build` 더블클릭
-
-#### 5) 테스트 실행
-
-- **전체 테스트**: `src/test/java` 우클릭 > `Run 'Tests in...'`
-- **개별 테스트**: 테스트 파일 내에서 ▶️ 버튼 클릭
-- **Gradle 테스트**: Gradle 패널 > `Tasks > verification > test`
-
-#### 6) Run Configuration 설정 (선택)
-
-1. 상단 Run Configuration 드롭다운 클릭 > `Edit Configurations...`
-2. Environment Variables에 추가:
-   ```
-   SPRING_PROFILES_ACTIVE=local
-   ```
-3. VM Options에 추가 (필요시):
-   ```
-   -Xmx512m -Xms256m
-   ```
-
-### 방법 3: Gradle로 직접 실행
+**방법 1: Gradle로 실행**
 
 ```bash
-# 빌드
-./gradlew build
-
-# 실행
 ./gradlew bootRun
-
-# 테스트
-./gradlew test
 ```
 
-### Health Check 확인
+**방법 2: IntelliJ IDEA**
+
+1. 프로젝트를 IntelliJ IDEA로 열기
+2. `src/main/java/com/company/account/AccountApplication.java` 실행
+3. Run Configuration에서 환경 변수 설정 가능
+
+애플리케이션은 `http://localhost:8081`에서 실행됩니다.
+
+#### 5. Health Check 확인
 
 ```bash
 curl http://localhost:8081/api/health
@@ -205,144 +165,37 @@ curl http://localhost:8081/api/health
   "success": true,
   "data": {
     "status": "UP",
-    "service": "template"
+    "service": "service-account"
   },
   "error": null
 }
 ```
 
-### 패키지 구조 상세
+### 빌드 및 테스트
 
-```
-com.company.{service-name}
- ├── controller/          # Presentation Layer
- │   ├── api/            # API 버전별 컨트롤러
- │   └── request/        # 요청 DTO
- │
- ├── service/            # Business Layer
- │   ├── impl/           # 서비스 구현체
- │   └── mapper/         # Entity ↔ DTO 변환
- │
- ├── repository/         # Persistence Layer
- │   ├── custom/         # 커스텀 Repository
- │   └── specification/  # JPA Specification
- │
- ├── domain/             # Domain Layer
- │   ├── entity/         # JPA 엔티티
- │   ├── vo/             # Value Objects
- │   └── enums/          # 열거형
- │
- ├── dto/                # Data Transfer Objects
- │   ├── request/        # API 요청 DTO
- │   └── response/       # API 응답 DTO
- │
- ├── config/             # Infrastructure
- │   ├── security/       # 보안 설정
- │   ├── database/       # DB 설정
- │   └── web/            # Web 설정
- │
- ├── exception/          # Exception Handling
- │   ├── custom/         # 커스텀 예외
- │   └── handler/        # 전역 예외 핸들러
- │
- └── util/               # Utilities
-     ├── validation/     # 커스텀 Validator
-     └── constant/       # 상수
-```
-
-## 프로젝트 구조
-
-```
-msa-service-template/
-├── .github/
-│   ├── workflows/          # GitHub Actions 워크플로우
-│   └── PULL_REQUEST_TEMPLATE.md
-├── helm/                   # Helm Chart
-│   ├── templates/
-│   ├── Chart.yaml
-│   └── values.yaml
-├── k8s/                    # Kubernetes 매니페스트
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── configmap.yaml
-│   └── secret.yaml
-├── scripts/                # 유틸리티 스크립트
-├── src/
-│   ├── main/
-│   │   ├── java/com/company/template/
-│   │   │   ├── controller/     # REST 컨트롤러
-│   │   │   ├── service/        # 비즈니스 로직
-│   │   │   ├── repository/     # 데이터 접근
-│   │   │   ├── entity/         # JPA 엔티티
-│   │   │   ├── dto/            # 데이터 전송 객체
-│   │   │   ├── config/         # 설정 클래스
-│   │   │   ├── exception/      # 예외 처리
-│   │   │   └── TemplateApplication.java
-│   │   └── resources/
-│   │       └── application.yml
-│   └── test/
-├── build.gradle            # Gradle 빌드 설정
-├── settings.gradle
-├── Dockerfile             # Docker 이미지 빌드
-├── docker-compose.yml     # 로컬 개발 환경
-└── README.md
-```
-
-## 배포
-
-### Kubernetes (kind 로컬 클러스터)
-
-#### 1) 클러스터 생성
+#### 전체 빌드
 
 ```bash
-kind create cluster --name msa-local
+./gradlew clean build
 ```
 
-#### 2) 이미지 빌드 & 로드
+#### 단위 테스트 실행
 
 ```bash
-docker build -t template-service:latest .
-kind load docker-image template-service:latest --name msa-local
+./gradlew test
 ```
 
-#### 3) 배포
+#### 통합 테스트 실행 (Testcontainers)
 
 ```bash
-kubectl apply -f k8s/
+./gradlew integrationTest
 ```
 
-#### 4) 확인
+#### 테스트 커버리지 확인
 
 ```bash
-kubectl get pods
-kubectl get services
-kubectl logs -f <pod-name>
-```
-
-#### 5) 포트 포워딩으로 접근
-
-```bash
-kubectl port-forward svc/template-service 8081:80
-```
-
-### Helm
-
-#### 설치
-
-```bash
-helm install my-service ./helm
-```
-
-#### 업그레이드
-
-```bash
-helm upgrade my-service ./helm
-```
-
-#### 삭제
-
-```bash
-helm uninstall my-service
+./gradlew jacocoTestReport
+# 리포트 확인: build/reports/jacoco/test/html/index.html
 ```
 
 ## API 문서
@@ -359,6 +212,7 @@ helm uninstall my-service
   "data": {
     /* 실제 데이터 */
   },
+  "message": "성공 메시지",
   "error": null
 }
 ```
@@ -369,30 +223,136 @@ helm uninstall my-service
 {
   "success": false,
   "data": null,
-  "error": "Error message"
+  "message": null,
+  "error": "에러 메시지"
 }
 ```
 
 ### 주요 엔드포인트
 
-- `GET /api/health`: 헬스 체크
-- `GET /actuator/health`: Spring Boot Actuator 헬스 체크
-- `GET /actuator/info`: 애플리케이션 정보
+#### 인증 API (`/api/auth`)
+
+| Method | Endpoint                       | 설명                        | 인증 필요 |
+| ------ | ------------------------------ | --------------------------- | --------- |
+| POST   | `/signup`                      | 회원가입                    | ❌        |
+| POST   | `/send-verification-code`      | 이메일 인증 코드 전송       | ❌        |
+| POST   | `/verify-email`                | 이메일 인증                 | ❌        |
+| POST   | `/login`                       | 로그인                      | ❌        |
+| POST   | `/logout`                      | 로그아웃                    | ✅        |
+| POST   | `/refresh`                     | Access Token 갱신           | ❌        |
+| GET    | `/kakao`                       | 카카오 로그인 시작          | ❌        |
+| GET    | `/kakao/callback`              | 카카오 로그인 콜백          | ❌        |
+
+#### 사용자 API (`/api/users`)
+
+| Method | Endpoint                  | 설명                       | 인증 필요 |
+| ------ | ------------------------- | -------------------------- | --------- |
+| GET    | `/me`                     | 내 정보 조회               | ✅        |
+| PATCH  | `/me`                     | 내 정보 수정               | ✅        |
+| DELETE | `/me`                     | 계정 탈퇴                  | ✅        |
+| POST   | `/me/password`            | 비밀번호 변경              | ✅        |
+| POST   | `/me/set-password`        | 비밀번호 설정 (소셜 전용)  | ✅        |
+| POST   | `/me/verify-password`     | 비밀번호 확인              | ✅        |
+| GET    | `/search`                 | 사용자 검색 (페이지네이션) | ✅        |
+| GET    | `/email/{email}`          | 이메일로 조회              | ✅        |
+| GET    | `/{userId}`               | ID로 조회                  | ✅        |
+| GET    | `/status/{status}`        | 상태별 조회                | ✅        |
+| PUT    | `/{userId}`               | 사용자 정보 수정           | ✅        |
+| PATCH  | `/{userId}/role`          | 권한 변경                  | ✅        |
+| PATCH  | `/{userId}/suspend`       | 계정 정지                  | ✅        |
+| PATCH  | `/{userId}/activate`      | 계정 활성화                | ✅        |
+| DELETE | `/{userId}`               | 소프트 삭제                | ✅        |
+| DELETE | `/{userId}/hard`          | 영구 삭제                  | ✅        |
+
+#### Health Check
+
+| Method | Endpoint           | 설명                     |
+| ------ | ------------------ | ------------------------ |
+| GET    | `/api/health`      | 서비스 헬스 체크         |
+| GET    | `/actuator/health` | Spring Actuator 헬스 체크 |
+| GET    | `/actuator/info`   | 애플리케이션 정보        |
+
+더 자세한 API 문서는 Postman 컬렉션을 참고하세요.
+
+## 환경 변수
+
+### 데이터베이스
+
+| 변수          | 설명              | 기본값          |
+| ------------- | ----------------- | --------------- |
+| `DB_HOST`     | MySQL 호스트      | localhost       |
+| `DB_PORT`     | MySQL 포트        | 3307            |
+| `DB_NAME`     | 데이터베이스 이름 | passit_db       |
+| `DB_USER`     | DB 사용자         | passit_user     |
+| `DB_PASSWORD` | DB 비밀번호       | passit_password |
+
+### 이메일 (SMTP)
+
+| 변수            | 설명                 | 기본값                    |
+| --------------- | -------------------- | ------------------------- |
+| `MAIL_USERNAME` | SMTP 사용자 (이메일) | your-email@gmail.com      |
+| `MAIL_PASSWORD` | SMTP 비밀번호        | your-app-password         |
+
+Gmail 사용 시 [앱 비밀번호](https://support.google.com/accounts/answer/185833)를 발급받아야 합니다.
+
+### 카카오 OAuth
+
+| 변수                   | 설명                  | 기본값                                          |
+| ---------------------- | --------------------- | ----------------------------------------------- |
+| `KAKAO_REST_API_KEY`   | 카카오 REST API 키    | -                                               |
+| `KAKAO_CLIENT_SECRET`  | 카카오 Client Secret  | -                                               |
+| `KAKAO_REDIRECT_URI`   | OAuth 리다이렉트 URI  | http://localhost:8081/api/auth/kakao/callback   |
+| `FRONTEND_URL`         | 프론트엔드 URL        | http://localhost:3000                           |
+
+카카오 개발자 콘솔에서 애플리케이션을 등록하고 위 정보를 발급받아야 합니다.
+
+### 관리자 계정
+
+| 변수              | 설명              | 기본값           |
+| ----------------- | ----------------- | ---------------- |
+| `ADMIN_EMAIL`     | 관리자 이메일     | admin@passit.com |
+| `ADMIN_PASSWORD`  | 관리자 비밀번호   | admin123!        |
+| `ADMIN_NAME`      | 관리자 이름       | 관리자           |
+| `ADMIN_NICKNAME`  | 관리자 닉네임     | admin            |
+
+## 프로젝트 구조
+
+```
+service-account/
+├── src/
+│   ├── main/
+│   │   ├── java/com/company/account/
+│   │   │   ├── config/              # 설정 클래스 (Security, CORS 등)
+│   │   │   ├── controller/          # REST API 컨트롤러
+│   │   │   ├── dto/                 # 요청/응답 DTO
+│   │   │   ├── entity/              # JPA 엔티티
+│   │   │   ├── exception/           # 커스텀 예외 및 핸들러
+│   │   │   ├── repository/          # JPA Repository
+│   │   │   ├── security/            # JWT, UserDetails 등
+│   │   │   ├── service/             # 비즈니스 로직
+│   │   │   └── AccountApplication.java
+│   │   └── resources/
+│   │       ├── application.yml      # 애플리케이션 설정
+│   │       └── data.sql             # 초기 데이터 (옵션)
+│   └── test/
+│       ├── java/                    # 테스트 코드
+│       │   ├── unit/               # 단위 테스트
+│       │   └── integration/        # 통합 테스트
+│       └── resources/
+├── build.gradle                     # Gradle 빌드 설정
+├── docker-compose.yml               # Docker Compose 설정
+└── README.md
+```
 
 ## 개발 규칙
 
-### 패키지 구조 규칙
+### 코드 스타일
 
-```
-com.company.{service-name}
- ├── controller      # REST API 엔드포인트
- ├── service         # 비즈니스 로직
- ├── repository      # 데이터베이스 접근
- ├── entity          # JPA 엔티티
- ├── dto             # 요청/응답 DTO
- ├── config          # 설정 클래스
- └── exception       # 커스텀 예외 및 핸들러
-```
+- Java Code Convention 준수
+- Lombok 적극 활용
+- Layer 간 의존성 방향: Controller → Service → Repository
+- DTO 사용으로 Entity 노출 방지
+- 모든 API 응답은 `ApiResponse` 래퍼 사용
 
 ### 브랜치 전략
 
@@ -400,13 +360,6 @@ com.company.{service-name}
 - `develop`: 개발 환경 통합 브랜치
 - `feature/{기능명}`: 기능 개발 브랜치
 - `bugfix/{버그명}`: 버그 수정 브랜치
-
-### Pull Request 규칙
-
-1. PR 생성 시 템플릿 작성
-2. 최소 1명 이상 리뷰어 지정
-3. CI 성공 필수
-4. 승인 후 Squash Merge
 
 ### 커밋 메시지 규칙
 
@@ -420,102 +373,12 @@ test: 테스트 코드
 chore: 빌드, 설정 파일 수정
 ```
 
-### 코드 스타일
+### Pull Request 규칙
 
-- Java Code Convention 준수
-- Lombok 적극 활용
-- Layer 간 의존성 방향: Controller → Service → Repository
-- DTO 사용으로 Entity 노출 방지
-
-## IntelliJ IDEA 추천 설정
-
-### 필수 플러그인
-
-권장 플러그인 설치 방법: `File > Settings > Plugins`
-
-- **Lombok**: Lombok 어노테이션 지원 (필수)
-- **String Manipulation**: 문자열 조작 단축키
-- **Rainbow Brackets**: 괄호 가독성 향상
-- **SonarLint**: 코드 품질 검사
-
-### Lombok 설정
-
-Lombok 사용을 위한 필수 설정:
-
-1. `File > Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
-2. `Enable annotation processing` 체크
-
-### 코드 스타일 설정
-
-1. `File > Settings > Editor > Code Style > Java`
-2. 권장 설정:
-   - Indent: 4 spaces
-   - Tab size: 4
-   - Continuation indent: 8
-
-### Live Templates 추천
-
-자주 사용하는 코드 스니펫 등록: `File > Settings > Editor > Live Templates`
-
-```java
-// psvm - public static void main
-public static void main(String[] args) {
-    $END$
-}
-
-// sout - System.out.println
-System.out.println($END$);
-
-// rest - REST Controller 생성
-@RestController
-@RequestMapping("/api/$PATH$")
-@RequiredArgsConstructor
-public class $CLASS$Controller {
-    $END$
-}
-```
-
-## CI/CD
-
-### GitHub Actions 워크플로우
-
-1. **CI** (`.github/workflows/ci.yml`)
-
-   - PR 생성 시 자동 빌드 및 테스트
-   - 테스트 결과 리포트 생성
-
-2. **Docker Build** (`.github/workflows/docker-build.yml`)
-
-   - main 브랜치 푸시 시 Docker 이미지 빌드
-   - GitHub Container Registry에 푸시
-
-3. **Code Quality** (`.github/workflows/code-quality.yml`)
-   - 코드 스타일 검사
-   - 정적 분석
-
-## 환경 변수
-
-### 로컬 개발
-
-`src/main/resources/application.yml`에서 설정
-
-### Docker
-
-`docker-compose.yml`의 환경 변수 섹션
-
-### Kubernetes
-
-`k8s/configmap.yaml` 및 `k8s/secret.yaml`
-
-### 주요 환경 변수
-
-| 변수          | 설명                  | 기본값      |
-| ------------- | --------------------- | ----------- |
-| `DB_HOST`     | 데이터베이스 호스트   | localhost   |
-| `DB_PORT`     | 데이터베이스 포트     | 5432        |
-| `DB_NAME`     | 데이터베이스 이름     | template_db |
-| `DB_USER`     | 데이터베이스 사용자   | postgres    |
-| `DB_PASSWORD` | 데이터베이스 비밀번호 | postgres    |
+1. PR 생성 시 템플릿 작성
+2. 최소 1명 이상 리뷰어 지정
+3. CI 성공 필수
+4. 승인 후 Squash Merge
 
 ## 트러블슈팅
 
@@ -529,25 +392,30 @@ public class $CLASS$Controller {
 ./gradlew wrapper
 ```
 
-### Docker 컨테이너 시작 실패
+### 데이터베이스 연결 실패
 
 ```bash
-# 로그 확인
-docker-compose logs
+# Docker 컨테이너 상태 확인
+docker-compose ps
+
+# MySQL 로그 확인
+docker-compose logs mysql
 
 # 컨테이너 재시작
-docker-compose restart
+docker-compose restart mysql
 ```
 
-### Kubernetes Pod 시작 실패
+### 이메일 전송 실패
 
-```bash
-# Pod 상태 확인
-kubectl describe pod <pod-name>
+- Gmail 사용 시 앱 비밀번호를 올바르게 설정했는지 확인
+- 2단계 인증이 활성화되어 있는지 확인
+- SMTP 포트 (587) 방화벽 확인
 
-# 로그 확인
-kubectl logs <pod-name>
-```
+### 카카오 로그인 실패
+
+- 카카오 개발자 콘솔에서 Redirect URI가 정확히 등록되었는지 확인
+- REST API 키와 Client Secret이 올바른지 확인
+- 프론트엔드 URL이 정확히 설정되었는지 확인
 
 ## 라이선스
 
