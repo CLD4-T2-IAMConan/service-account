@@ -45,7 +45,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",          // 인증 관련
                                 "/api/email/**",         // 이메일 인증
-                                "/actuator/**",          // Health Check
+                                "/api/health",           // Health Check
+                                "/actuator/**",          // Actuator Health Check
                                 "/error"
                         ).permitAll()
                         // 내 정보 관리 엔드포인트 (인증된 사용자만)
