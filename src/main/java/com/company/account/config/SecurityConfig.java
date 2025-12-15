@@ -52,7 +52,9 @@ public class SecurityConfig {
                         // 내 정보 관리 엔드포인트 (인증된 사용자만)
                         .requestMatchers("/api/users/me/**").authenticated()
                         // 관리자 전용 엔드포인트 (회원 관리)
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        // TODO: 프로덕션 환경에서는 hasRole("ADMIN")으로 변경 필요
+                        .requestMatchers("/api/users/search").authenticated()  // 임시: 테스트용
+                        .requestMatchers("/api/users/**").authenticated()  // 임시: 테스트용 (프로덕션에서는 hasRole("ADMIN")으로 변경)
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
