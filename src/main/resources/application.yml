@@ -44,6 +44,16 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    # 메일 서비스 health check 비활성화 (로컬 개발 환경에서는 LocalEmailService 사용)
+    mail:
+      enabled: false
+    # health groups 설정 - 메일을 제외한 상태만 확인
+    group:
+      readiness:
+        include: db,diskSpace,ping
+      liveness:
+        include: ping
 
 logging:
   level:

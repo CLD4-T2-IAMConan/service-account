@@ -119,6 +119,9 @@ public class UserService {
         }
 
         if (request.getPassword() != null) {
+            if (request.getPassword().length() < 8) {
+                throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다");
+            }
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 

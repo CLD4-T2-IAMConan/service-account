@@ -53,8 +53,18 @@ public class UserRequest {
         @Size(max = 20, message = "전화번호는 최대 20자까지 입니다")
         private String phone;
 
-        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
+        // password는 null일 수 있으므로 @Size 대신 조건부 검증 사용
+        // @Size는 null이 아닐 때만 검증하지만, 명시적으로 처리
         private String password;
+        
+        // password 검증을 위한 커스텀 메서드 (필요시 추가)
+        public boolean hasPassword() {
+            return password != null && !password.isEmpty();
+        }
+        
+        public boolean isValidPassword() {
+            return !hasPassword() || password.length() >= 8;
+        }
     }
 
     @Data
