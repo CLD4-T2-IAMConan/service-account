@@ -60,14 +60,17 @@ docker build -t "${SERVICE_NAME}:latest" .
 echo "Loading image into kind cluster..."
 kind load docker-image "${SERVICE_NAME}:latest" --name "$CLUSTER_NAME"
 
-# Deploy to Kubernetes
-echo "Deploying to Kubernetes..."
-kubectl apply -f k8s/
+# Deploy to Kubernetes using Helm
+echo "Deploying to Kubernetes using Helm..."
+helm install ${SERVICE_NAME} ./helm \
+  --namespace services \
+  --create-namespace \
+  --set image.repository=${SERVICE_NAME} \
+  --set image.tag=latest
 
 # Wait for deployments to be ready
 echo "Waiting for deployments to be ready..."
-kubectl wait --for=condition=available --timeout=300s deployment/postgres
-kubectl wait --for=condition=available --timeout=300s deployment/${SERVICE_NAME}
+kubectl wait --for=condition=available --timeout=300s deployment/${SERVICE_NAME} -n services
 
 # Show status
 echo "=========================================="

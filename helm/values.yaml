@@ -34,6 +34,7 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 
 database:
   enabled: true
@@ -42,6 +43,13 @@ database:
   name: account_db
   user: postgres
   password: postgres
+
+# Valkey 설정 (ElastiCache for Valkey)
+redis:
+  host: "passit-dev-eks.xxxxx.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
+  port: 6379
+  password: "" # ElastiCache 비밀번호가 있는 경우 설정
+  ssl: true
 
 env:
   SPRING_PROFILES_ACTIVE: "production"

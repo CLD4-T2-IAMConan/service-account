@@ -12,14 +12,21 @@ spring:
       hibernate:
         format_sql: true
 
-  # Redis/Valkey 개발 환경 설정
+  # Valkey 개발 환경 설정 (ElastiCache for Valkey 연동)
   data:
     redis:
-      host: localhost
-      port: 6380
-      password: ""
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: false
+        enabled: ${REDIS_SSL:false}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+      timeout: 3000ms
 
 logging:
   level:

@@ -49,14 +49,12 @@ sed -i.bak "s/template-service/${SERVICE_NAME_LOWER}-service/g" helm/values.yaml
 sed -i.bak "s/template_db/${SERVICE_NAME_LOWER}_db/g" helm/values.yaml
 rm -f helm/values.yaml.bak
 
-echo "5. Renaming in Kubernetes manifests..."
-for file in k8s/*.yaml; do
-    sed -i.bak "s/template-service/${SERVICE_NAME_LOWER}-service/g" "$file"
-    sed -i.bak "s/template_db/${SERVICE_NAME_LOWER}_db/g" "$file"
-    sed -i.bak "s/template-config/${SERVICE_NAME_LOWER}-config/g" "$file"
-    sed -i.bak "s/template-secret/${SERVICE_NAME_LOWER}-secret/g" "$file"
-    rm -f "${file}.bak"
-done
+echo "5. Renaming in Helm templates..."
+find helm/templates -name "*.yaml" -type f -exec sed -i.bak "s/template-service/${SERVICE_NAME_LOWER}-service/g" {} \;
+find helm/templates -name "*.yaml" -type f -exec sed -i.bak "s/template_db/${SERVICE_NAME_LOWER}_db/g" {} \;
+find helm/templates -name "*.yaml" -type f -exec sed -i.bak "s/template-config/${SERVICE_NAME_LOWER}-config/g" {} \;
+find helm/templates -name "*.yaml" -type f -exec sed -i.bak "s/template-secret/${SERVICE_NAME_LOWER}-secret/g" {} \;
+find helm/templates -name "*.yaml.bak" -type f -delete
 
 echo "6. Renaming in docker-compose.yml..."
 sed -i.bak "s/template-service/${SERVICE_NAME_LOWER}-service/g" docker-compose.yml

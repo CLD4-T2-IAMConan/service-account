@@ -8,3 +8,6 @@ data:
   db.host: {{ .Values.database.host | quote }}
   db.port: {{ .Values.database.port | quote }}
   db.name: {{ .Values.database.name | quote }}
+  redis.host: {{ .Values.redis.host | quote }}
+  redis.port: {{ .Values.redis.port | quote }}
+  redis.ssl: {{ .Values.redis.ssl | quote }}
