@@ -3,16 +3,20 @@ package com.company.account.service;
 import com.company.account.dto.AuthRequest;
 import com.company.account.dto.AuthResponse;
 import com.company.account.dto.KakaoUserInfo;
+import com.company.account.dto.RefreshTokenCache;
 import com.company.account.entity.User;
 import com.company.account.repository.UserRepository;
 import com.company.account.security.JwtTokenProvider;
+import com.company.account.util.CacheKeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -24,6 +28,9 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailVerificationService emailVerificationService;
     private final KakaoAuthService kakaoAuthService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheKeyGenerator cacheKeyGenerator;
+    private final CacheInvalidationService cacheInvalidationService;
 
     /**
      * 회원가입 (이메일 인증 필요)
@@ -97,10 +104,25 @@ public class AuthService {
         );
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
 
-        // Refresh Token 저장
+        // Refresh Token 저장 (DB)
         user.setRefreshToken(refreshToken);
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
+
+        // Refresh Token 메타정보 캐싱 (Redis)
+        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
+        RefreshTokenCache tokenCache = RefreshTokenCache.builder()
+            .userId(user.getUserId())
+            .token(refreshToken)
+            .isValid(true)
+            .expiredAt(LocalDateTime.now().plusDays(7))
+            .build();
+        redisTemplate.opsForValue().set(
+            refreshTokenKey,
+            tokenCache,
+            7,
+            TimeUnit.DAYS
+        );
 
         log.info("User logged in successfully: {}", user.getUserId());
 
@@ -126,9 +148,12 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
-        // Refresh Token 제거
+        // Refresh Token 제거 (DB)
         user.setRefreshToken(null);
         userRepository.save(user);
+
+        // Refresh Token 캐시 무효화 (Redis)
+        cacheInvalidationService.invalidateRefreshTokenCache(userId);
 
         log.info("User logged out successfully: {}", userId);
     }
@@ -148,13 +173,50 @@ public class AuthService {
         // 사용자 ID 추출
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
 
-        // 사용자 조회 및 Refresh Token 검증
+        // 1. Redis 캐시 확인
+        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(userId);
+        RefreshTokenCache cachedToken = (RefreshTokenCache) redisTemplate.opsForValue().get(refreshTokenKey);
+
+        if (cachedToken != null && cachedToken.getToken().equals(refreshToken) && cachedToken.getIsValid()) {
+            log.debug("Refresh token found in cache for user: {}", userId);
+
+            // 캐시에서 가져온 경우, DB 조회는 사용자 정보만 (Refresh Token 비교 스킵)
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+            // 새로운 Access Token 생성
+            String newAccessToken = jwtTokenProvider.createAccessToken(
+                    user.getUserId(),
+                    user.getEmail(),
+                    user.getRole().name()
+            );
+
+            log.info("Access token refreshed successfully for user: {}", userId);
+
+            return AuthResponse.TokenResponse.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .expiresAt(LocalDateTime.now().plusHours(1))
+                    .build();
+        }
+
+        // 2. 캐시 미스 시 DB 조회 및 검증
+        log.debug("Refresh token not found in cache, querying database for user: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다");
         }
+
+        // 캐시 재생성
+        RefreshTokenCache newCache = RefreshTokenCache.builder()
+            .userId(user.getUserId())
+            .token(refreshToken)
+            .isValid(true)
+            .expiredAt(LocalDateTime.now().plusDays(7))
+            .build();
+        redisTemplate.opsForValue().set(refreshTokenKey, newCache, 7, TimeUnit.DAYS);
 
         // 새로운 Access Token 생성
         String newAccessToken = jwtTokenProvider.createAccessToken(
@@ -167,7 +229,7 @@ public class AuthService {
 
         return AuthResponse.TokenResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken)  // Refresh Token은 그대로 유지
+                .refreshToken(refreshToken)
                 .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
     }
@@ -308,10 +370,25 @@ public class AuthService {
         );
         String jwtRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
 
-        // Refresh Token 저장
+        // Refresh Token 저장 (DB)
         user.setRefreshToken(jwtRefreshToken);
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
+
+        // Refresh Token 메타정보 캐싱 (Redis)
+        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
+        RefreshTokenCache tokenCache = RefreshTokenCache.builder()
+            .userId(user.getUserId())
+            .token(jwtRefreshToken)
+            .isValid(true)
+            .expiredAt(LocalDateTime.now().plusDays(7))
+            .build();
+        redisTemplate.opsForValue().set(
+            refreshTokenKey,
+            tokenCache,
+            7,
+            TimeUnit.DAYS
+        );
 
         log.info("Kakao login successful. User ID: {}", user.getUserId());
 

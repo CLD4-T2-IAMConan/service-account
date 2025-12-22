@@ -1,5 +1,6 @@
 package com.company.account.service;
 
+import com.company.account.config.CacheConfig;
 import com.company.account.dto.UserRequest;
 import com.company.account.dto.UserResponse;
 import com.company.account.entity.User;
@@ -7,6 +8,7 @@ import com.company.account.entity.User.UserStatus;
 import com.company.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final CacheInvalidationService cacheInvalidationService;
 
     @Transactional
     public UserResponse createUser(UserRequest.Create request) {
@@ -53,9 +56,10 @@ public class UserService {
         return UserResponse.fromEntity(savedUser);
     }
 
+    @Cacheable(value = CacheConfig.CACHE_USER, key = "#userId")
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
-        log.info("Fetching user with ID: {}", userId);
+        log.info("Fetching user with ID: {} (will cache if not exists)", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
@@ -63,9 +67,10 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
+    @Cacheable(value = CacheConfig.CACHE_USER_EMAIL, key = "#email")
     @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email) {
-        log.info("Fetching user with email: {}", email);
+        log.info("Fetching user with email: {} (will cache if not exists)", email);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
@@ -128,6 +133,9 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         log.info("User updated successfully: {}", userId);
 
+        // Invalidate user info cache
+        cacheInvalidationService.invalidateUserInfoCache(userId);
+
         return UserResponse.fromEntity(updatedUser);
     }
 
@@ -143,6 +151,9 @@ public class UserService {
 
         userRepository.save(user);
         log.info("User soft deleted successfully: {}", userId);
+
+        // Invalidate all user-related caches
+        cacheInvalidationService.invalidateUserCaches(userId);
     }
 
     @Transactional
@@ -155,6 +166,9 @@ public class UserService {
 
         userRepository.deleteById(userId);
         log.info("User hard deleted successfully: {}", userId);
+
+        // Invalidate all user-related caches
+        cacheInvalidationService.invalidateUserCaches(userId);
     }
 
     @Transactional
@@ -168,6 +182,9 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
         log.info("User role updated successfully: {}", userId);
+
+        // Invalidate user info cache (role affects access control)
+        cacheInvalidationService.invalidateUserInfoCache(userId);
 
         return UserResponse.fromEntity(updatedUser);
     }
@@ -183,6 +200,9 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
         log.info("User suspended successfully: {}", userId);
+
+        // Invalidate all user-related caches (suspended user should not access)
+        cacheInvalidationService.invalidateUserCaches(userId);
 
         return UserResponse.fromEntity(updatedUser);
     }
@@ -202,6 +222,9 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
         log.info("User activated successfully: {}", userId);
+
+        // Invalidate user info cache (status changed)
+        cacheInvalidationService.invalidateUserInfoCache(userId);
 
         return UserResponse.fromEntity(updatedUser);
     }
@@ -234,6 +257,9 @@ public class UserService {
         userRepository.save(user);
 
         log.info("Password changed successfully for user: {}", userId);
+
+        // Invalidate refresh token cache (force re-login for security)
+        cacheInvalidationService.invalidateRefreshTokenCache(userId);
     }
 
     /**
@@ -257,6 +283,9 @@ public class UserService {
         userRepository.save(user);
 
         log.info("Password set successfully for social user: {}", userId);
+
+        // Invalidate refresh token cache (force re-login for security)
+        cacheInvalidationService.invalidateRefreshTokenCache(userId);
     }
 
     @Transactional(readOnly = true)

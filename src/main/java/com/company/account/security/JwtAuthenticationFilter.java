@@ -1,11 +1,14 @@
 package com.company.account.security;
 
+import com.company.account.dto.TokenValidationCache;
+import com.company.account.util.CacheKeyGenerator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +18,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -23,6 +28,8 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheKeyGenerator cacheKeyGenerator;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -43,10 +50,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
-                Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
-                String email = jwtTokenProvider.getEmailFromToken(jwt);
-                String role = jwtTokenProvider.getRoleFromToken(jwt);
+            if (StringUtils.hasText(jwt)) {
+                // 1. 토큰 해시 생성
+                String tokenHash = cacheKeyGenerator.hashToken(jwt);
+                String cacheKey = cacheKeyGenerator.tokenValidationKey(tokenHash);
+
+                // 2. 캐시에서 검증 결과 조회
+                TokenValidationCache cachedValidation =
+                    (TokenValidationCache) redisTemplate.opsForValue().get(cacheKey);
+
+                Long userId;
+                String email;
+                String role;
+
+                if (cachedValidation != null) {
+                    // 캐시 히트: 검증 결과 사용
+                    log.debug("Token validation cache hit for hash: {}", tokenHash.substring(0, 8));
+                    userId = cachedValidation.getUserId();
+                    email = cachedValidation.getEmail();
+                    role = cachedValidation.getRole();
+                } else {
+                    // 캐시 미스: 토큰 검증 수행
+                    log.debug("Token validation cache miss for hash: {}", tokenHash.substring(0, 8));
+
+                    if (!jwtTokenProvider.validateToken(jwt)) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
+                    userId = jwtTokenProvider.getUserIdFromToken(jwt);
+                    email = jwtTokenProvider.getEmailFromToken(jwt);
+                    role = jwtTokenProvider.getRoleFromToken(jwt);
+
+                    // 검증 결과 캐싱 (5분)
+                    TokenValidationCache validationCache = TokenValidationCache.builder()
+                        .userId(userId)
+                        .email(email)
+                        .role(role)
+                        .expiredAt(LocalDateTime.now().plusMinutes(5))
+                        .build();
+                    redisTemplate.opsForValue().set(cacheKey, validationCache, 5, TimeUnit.MINUTES);
+                }
 
                 // Spring Security의 Authority 형식으로 변환 (ROLE_ 접두사 추가)
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);

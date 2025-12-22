@@ -6,14 +6,18 @@ import com.company.account.entity.User;
 import com.company.account.repository.UserRepository;
 import com.company.account.security.JwtTokenProvider;
 import com.company.account.service.AuthService;
+import com.company.account.service.CacheInvalidationService;
 import com.company.account.service.EmailVerificationService;
 import com.company.account.service.KakaoAuthService;
+import com.company.account.util.CacheKeyGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -50,6 +54,18 @@ class AuthServiceTest {
 
     @Mock
     private KakaoAuthService kakaoAuthService;
+
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private CacheKeyGenerator cacheKeyGenerator;
+
+    @Mock
+    private CacheInvalidationService cacheInvalidationService;
+
+    @Mock
+    private ValueOperations<String, Object> valueOperations;
 
     @InjectMocks
     private AuthService authService;
@@ -167,6 +183,10 @@ class AuthServiceTest {
             .willReturn("accessToken");
         given(jwtTokenProvider.createRefreshToken(anyLong())).willReturn("refreshToken");
         given(userRepository.save(any(User.class))).willReturn(user);
+        
+        // Redis Mock 설정
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(cacheKeyGenerator.refreshTokenKey(anyLong())).willReturn("auth:refresh:1");
 
         // Act
         AuthResponse.LoginResponse result = authService.login(request);
@@ -302,6 +322,9 @@ class AuthServiceTest {
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(userRepository.save(any(User.class))).willReturn(user);
+        
+        // CacheInvalidationService는 Mock이므로 doNothing()으로 설정
+        doNothing().when(cacheInvalidationService).invalidateRefreshTokenCache(userId);
 
         // Act
         authService.logout(userId);
@@ -309,6 +332,7 @@ class AuthServiceTest {
         // Assert
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).save(argThat(u -> u.getRefreshToken() == null));
+        verify(cacheInvalidationService, times(1)).invalidateRefreshTokenCache(userId);
     }
 
     @Test
@@ -345,6 +369,11 @@ class AuthServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(jwtTokenProvider.createAccessToken(anyLong(), anyString(), anyString()))
             .willReturn("newAccessToken");
+        
+        // Redis Mock 설정 (캐시 미스 시뮬레이션)
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get(anyString())).willReturn(null); // 캐시 미스
+        given(cacheKeyGenerator.refreshTokenKey(userId)).willReturn("auth:refresh:1");
 
         // Act
         AuthResponse.TokenResponse result = authService.refreshAccessToken(refreshToken);
@@ -391,6 +420,11 @@ class AuthServiceTest {
         given(jwtTokenProvider.validateToken(refreshToken)).willReturn(true);
         given(jwtTokenProvider.getUserIdFromToken(refreshToken)).willReturn(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        
+        // Redis Mock 설정 (캐시 미스 시뮬레이션)
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get(anyString())).willReturn(null); // 캐시 미스
+        given(cacheKeyGenerator.refreshTokenKey(userId)).willReturn("auth:refresh:1");
 
         // Act & Assert
         assertThatThrownBy(() -> authService.refreshAccessToken(refreshToken))

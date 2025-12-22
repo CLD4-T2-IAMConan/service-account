@@ -9,7 +9,18 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+  # Redis/Valkey 프로덕션 환경 설정
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: ${REDIS_SSL:true}
+
 logging:
   level:
     com.company.template: INFO
     org.springframework: WARN
+    org.springframework.cache: INFO
+    org.springframework.data.redis: WARN
