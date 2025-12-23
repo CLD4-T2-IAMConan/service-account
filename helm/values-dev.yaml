@@ -1,0 +1,64 @@
+replicaCount: 2
+image:
+  repository: account-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8081
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: account-service.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+database:
+  enabled: true
+  host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
+  port: 5432
+  name: account_db
+  user: postgres
+  password: postgres
+# Valkey 설정 (ElastiCache for Valkey)
+redis:
+  host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
+  port: 6379
+  password: "" # ElastiCache 비밀번호가 있는 경우 설정
+  ssl: true
+env:
+  SPRING_PROFILES_ACTIVE: "production"
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  initialDelaySeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8081
+  initialDelaySeconds: 20
+  periodSeconds: 5
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
+s3:
+  bucket: passit-dev-uploads
