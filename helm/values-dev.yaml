@@ -38,6 +38,7 @@ database:
   user: postgres
   password: postgres
 # Valkey 설정 (ElastiCache for Valkey)
+
 redis:
   host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
   port: 6379
@@ -61,4 +62,4 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
 s3:
-  bucket: passit-dev-uploads
+  bucket: passit-dev-profile-images-bucket
