@@ -1,8 +1,9 @@
 replicaCount: 2
 image:
-  repository: account-service
+  repository: ghcr.io/cld4-t2-iamconan/service-account
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "sha-23f50d3"
+
 service:
   type: ClusterIP
   port: 80
@@ -29,7 +30,10 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
+<<<<<<< Updated upstream
   targetMemoryUtilizationPercentage: 80
+=======
+>>>>>>> Stashed changes
 database:
   enabled: true
   host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
@@ -37,6 +41,7 @@ database:
   name: account_db
   user: postgres
   password: postgres
+<<<<<<< Updated upstream
 # Valkey 설정 (ElastiCache for Valkey)
 
 redis:
@@ -44,6 +49,8 @@ redis:
   port: 6379
   password: "" # ElastiCache 비밀번호가 있는 경우 설정
   ssl: true
+=======
+>>>>>>> Stashed changes
 env:
   SPRING_PROFILES_ACTIVE: "production"
 livenessProbe:
@@ -58,8 +65,13 @@ readinessProbe:
     port: 8081
   initialDelaySeconds: 20
   periodSeconds: 5
+<<<<<<< Updated upstream
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
+=======
+redis:
+  host: passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com
+>>>>>>> Stashed changes
 s3:
   bucket: passit-dev-profile-images-bucket
