@@ -38,11 +38,11 @@ autoscaling:
 
 database:
   enabled: true
-  host: postgres-service
-  port: 5432
-  name: account_db
-  user: postgres
-  password: postgres
+  host: localhost
+  port: 3306
+  name: passit_db
+  user: passit_user
+  password: passit_password
 
 # Valkey 설정 (ElastiCache for Valkey)
 redis:
