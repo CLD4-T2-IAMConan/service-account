@@ -1,0 +1,69 @@
+# Local Kubernetes 환경 설정
+# AWS 마이그레이션 시 values-dev.yaml 사용
+
+replicaCount: 1
+
+image:
+  repository: service-account
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8081
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+
+# 로컬 MySQL 연결 (Kind 클러스터 내부)
+database:
+  enabled: true
+  host: mysql
+  port: 3306
+  name: passit_db
+  user: passit_user
+  password: passit_password
+
+# 로컬 Redis 연결 (Kind 클러스터 내부)
+redis:
+  host: redis
+  port: 6379
+  password: ""
+  ssl: false
+
+env:
+  SPRING_PROFILES_ACTIVE: "default"
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  initialDelaySeconds: 90
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8081
+  initialDelaySeconds: 60
+  periodSeconds: 5
+
+# 로컬 환경에서는 IRSA 불필요
+serviceAccount:
+  annotations: {}
+
+# S3는 로컬에서 비활성화 (필요시 MinIO 사용)
+s3:
+  bucket: ""

@@ -9,11 +9,16 @@ service:
   port: 80
   targetPort: 8081
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
+  enabled: true
+  className: alb
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
   hosts:
-    - host: account-service.local
+    - host: account-service.passit.com
       paths:
         - path: /
           pathType: Prefix
@@ -30,10 +35,7 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
-<<<<<<< Updated upstream
   targetMemoryUtilizationPercentage: 80
-=======
->>>>>>> Stashed changes
 database:
   enabled: true
   host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
@@ -41,16 +43,12 @@ database:
   name: account_db
   user: postgres
   password: postgres
-<<<<<<< Updated upstream
 # Valkey 설정 (ElastiCache for Valkey)
-
 redis:
   host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
   port: 6379
   password: "" # ElastiCache 비밀번호가 있는 경우 설정
   ssl: true
-=======
->>>>>>> Stashed changes
 env:
   SPRING_PROFILES_ACTIVE: "production"
 livenessProbe:
@@ -65,13 +63,8 @@ readinessProbe:
     port: 8081
   initialDelaySeconds: 20
   periodSeconds: 5
-<<<<<<< Updated upstream
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
-=======
-redis:
-  host: passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com
->>>>>>> Stashed changes
 s3:
   bucket: passit-dev-profile-images-bucket
