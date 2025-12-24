@@ -1,9 +1,8 @@
 replicaCount: 2
 image:
-  repository: ghcr.io/cld4-t2-iamconan/service-account
+  repository: account-service
   pullPolicy: IfNotPresent
-  tag: "sha-23f50d3"
-
+  tag: "latest"
 service:
   type: ClusterIP
   port: 80
@@ -30,27 +29,13 @@ autoscaling:
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
-<<<<<<< Updated upstream
-  targetMemoryUtilizationPercentage: 80
-=======
->>>>>>> Stashed changes
 database:
   enabled: true
-  host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
+  host: "passit-prod-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com"
   port: 5432
   name: account_db
   user: postgres
   password: postgres
-<<<<<<< Updated upstream
-# Valkey 설정 (ElastiCache for Valkey)
-
-redis:
-  host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
-  port: 6379
-  password: "" # ElastiCache 비밀번호가 있는 경우 설정
-  ssl: true
-=======
->>>>>>> Stashed changes
 env:
   SPRING_PROFILES_ACTIVE: "production"
 livenessProbe:
@@ -65,13 +50,7 @@ readinessProbe:
     port: 8081
   initialDelaySeconds: 20
   periodSeconds: 5
-<<<<<<< Updated upstream
-serviceAccount:
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
-=======
 redis:
-  host: passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com
->>>>>>> Stashed changes
+  host: "passit-prod-valkey-ro.q2tpkl.ng.0001.apn2.cache.amazonaws.com:6379"
 s3:
-  bucket: passit-dev-profile-images-bucket
+  bucket: "\e[33m╷\e[0m\e[0m\n\e[33m│\e[0m \e[0m\e[1m\e[33mWarning: \e[0m\e[0m\e[1mNo outputs found\e[0m\n\e[33m│\e[0m \e[0m\n\e[33m│\e[0m \e[0m\e[0mThe state file either has no outputs defined, or all the defined outputs\n\e[33m│\e[0m \e[0mare empty. Please define an output in your configuration with the `output`\n\e[33m│\e[0m \e[0mkeyword and run `terraform refresh` for it to become available. If you are\n\e[33m│\e[0m \e[0musing interpolation, please verify the interpolated value is not empty. You\n\e[33m│\e[0m \e[0mcan use the `terraform console` command to assist.\n\e[33m╵\e[0m\e[0m"
