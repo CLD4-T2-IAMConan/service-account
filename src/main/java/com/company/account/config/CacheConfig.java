@@ -38,9 +38,9 @@ public class CacheConfig implements CachingConfigurer {
 
     /**
      * ObjectMapper for Redis JSON serialization
+     * Note: This is NOT a @Bean to avoid interfering with HTTP JSON serialization
      */
-    @Bean
-    public ObjectMapper redisObjectMapper() {
+    private ObjectMapper createRedisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
@@ -61,8 +61,7 @@ public class CacheConfig implements CachingConfigurer {
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(
-            RedisConnectionFactory connectionFactory,
-            ObjectMapper redisObjectMapper) {
+            RedisConnectionFactory connectionFactory) {
 
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
@@ -74,7 +73,7 @@ public class CacheConfig implements CachingConfigurer {
 
         // Value serializer
         GenericJackson2JsonRedisSerializer jsonSerializer =
-            new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+            new GenericJackson2JsonRedisSerializer(createRedisObjectMapper());
         template.setValueSerializer(jsonSerializer);
         template.setHashValueSerializer(jsonSerializer);
 
@@ -103,7 +102,7 @@ public class CacheConfig implements CachingConfigurer {
                     new StringRedisSerializer()))
             .serializeValuesWith(
                 RedisSerializationContext.SerializationPair.fromSerializer(
-                    new GenericJackson2JsonRedisSerializer(redisObjectMapper())));
+                    new GenericJackson2JsonRedisSerializer(createRedisObjectMapper())));
 
         // 캐시별 TTL 설정
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();

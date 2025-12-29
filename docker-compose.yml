@@ -35,6 +35,7 @@ services:
       REDIS_HOST: valkey
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8081:8081"
     extra_hosts:
