@@ -16,6 +16,9 @@ spec:
       labels:
         {{- include "template-service.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.serviceAccount }}
+      serviceAccountName: {{ include "template-service.fullname" . }}-sa
+      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
