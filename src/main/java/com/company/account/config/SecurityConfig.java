@@ -49,12 +49,15 @@ public class SecurityConfig {
                                 "/actuator/**",          // Actuator Health Check
                                 "/error"
                         ).permitAll()
+                        // 사용자 조회 (GET) - 채팅방에서 판매자 정보 조회용
+                        .requestMatchers("GET", "/api/users/{userId}").permitAll()
+                        .requestMatchers("GET", "/api/users/email/**").permitAll()
                         // 내 정보 관리 엔드포인트 (인증된 사용자만)
                         .requestMatchers("/api/users/me/**").authenticated()
                         // 관리자 전용 엔드포인트 (회원 관리)
                         // TODO: 프로덕션 환경에서는 hasRole("ADMIN")으로 변경 필요
                         .requestMatchers("/api/users/search").authenticated()  // 임시: 테스트용
-                        .requestMatchers("/api/users/**").authenticated()  // 임시: 테스트용 (프로덕션에서는 hasRole("ADMIN")으로 변경)
+                        .requestMatchers("/api/users/**").authenticated()  // 나머지 사용자 API는 인증 필요
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
