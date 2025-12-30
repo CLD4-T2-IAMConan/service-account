@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",          // 인증 관련
                                 "/api/email/**",         // 이메일 인증
+                                "/api/test/**",          // 테스트 엔드포인트 (dev, ses, smtp 프로파일에서만 활성화됨)
                                 "/api/health",           // Health Check
                                 "/actuator/**",          // Actuator Health Check
                                 "/error"

@@ -1,0 +1,45 @@
+# AWS SES 설정
+# SES는 일부 리전에서만 지원됩니다 (us-east-1, us-west-2, ap-southeast-1 등)
+# ap-northeast-2는 지원하지 않으므로 us-east-1 사용
+aws:
+  ses:
+    region: ${AWS_SES_REGION:us-east-1}
+    from-email: ${AWS_SES_FROM_EMAIL:pkrystal.dev@gmail.com}
+    from-name: ${AWS_SES_FROM_NAME:Passit}
+    # AWS 자격 증명 (선택사항 - 비어있으면 기본 자격 증명 체인 사용)
+    # IAM Role 사용 시 아래 값들을 비워두면 자동으로 Role 자격 증명 사용
+    access-key: ${AWS_SES_ACCESS_KEY:}
+    secret-key: ${AWS_SES_SECRET_KEY:}
+
+# 테스트용 인메모리 데이터베이스 설정
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+  # Redis 설정 비활성화 (임베디드 모드)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: simple
+
+management:
+  health:
+    # SES는 별도의 health check가 없으므로 메일 체크 비활성화
+    mail:
+      enabled: false
+
+logging:
+  level:
+    com.company.account.service.SesEmailService: DEBUG
+    software.amazon.awssdk.services.ses: DEBUG
