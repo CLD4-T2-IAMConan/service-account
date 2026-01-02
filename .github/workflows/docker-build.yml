@@ -53,12 +53,31 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Trigger main repository update
+      - name: Update Helm values in main repository
+        env:
+          MAIN_REPO_PAT: ${{ secrets.MAIN_REPO_PAT }}
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.MAIN_REPO_PAT }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/CLD4-T2-IAMConan/Passit/dispatches \
-            -d "{\"event_type\":\"update-docker-compose\",\"client_payload\":{\"service\":\"service-account\",\"sha\":\"${SHORT_SHA}\"}}"
+          IMAGE_TAG="sha-${SHORT_SHA}"
+
+          git clone https://${MAIN_REPO_PAT}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
+          cd main-repo
+          git checkout develop || git checkout -b develop
+
+          VALUES_FILE="service-account/helm/values-dev.yaml"
+          if [ -f "$VALUES_FILE" ]; then
+            if command -v yq &> /dev/null; then
+              yq eval ".image.tag = \"$IMAGE_TAG\"" -i "$VALUES_FILE"
+            else
+              sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$VALUES_FILE"
+              rm -f "${VALUES_FILE}.bak"
+            fi
+            
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git add "$VALUES_FILE"
+            git commit -m "chore: update account-service image tag to $IMAGE_TAG [skip ci]" || echo "No changes to commit"
+            git push origin develop
+          else
+            echo "⚠️  Helm values file not found: $VALUES_FILE"
+          fi
