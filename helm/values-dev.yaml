@@ -43,8 +43,8 @@ database:
   host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
   port: 3306
   name: passit_db
-  user: passit_user
-  password: passit_password
+  user: admin
+  password: PassitDevPassword123!
 # Valkey 설정 (ElastiCache for Valkey)
 redis:
   host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
