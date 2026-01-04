@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class HealthController {
 
-    @GetMapping("/health")
+    @GetMapping("/auth/health")
     public ResponseEntity<ApiResponse<Map<String, String>>> health() {
         return ResponseEntity.ok(
             ApiResponse.success(Map.of("status", "UP", "service", "account"))
