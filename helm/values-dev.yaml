@@ -47,9 +47,9 @@ database:
   password: PassitDevPassword123!
 # Valkey 설정 (ElastiCache for Valkey)
 redis:
-  host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
+  host: "passit-dev-valkey-001.ri85pe.0001.apn2.cache.amazonaws.com"
   port: 6379
-  password: "" # ElastiCache 비밀번호가 있는 경우 설정
+  password: ""
   ssl: true
 env:
   SPRING_PROFILES_ACTIVE: "production"
