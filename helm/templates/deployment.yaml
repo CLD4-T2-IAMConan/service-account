@@ -17,7 +17,11 @@ spec:
         {{- include "template-service.selectorLabels" . | nindent 8 }}
     spec:
       {{- if .Values.serviceAccount }}
+      {{- if .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- else }}
       serviceAccountName: {{ include "template-service.fullname" . }}-sa
+      {{- end }}
       {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

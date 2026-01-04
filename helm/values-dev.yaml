@@ -70,8 +70,10 @@ readinessProbe:
   periodSeconds: 5
   timeoutSeconds: 3
   failureThreshold: 3
+# ServiceAccount는 Terraform IRSA 모듈이 생성 (account-sa)
+# Helm에서는 생성하지 않고 기존 것을 사용
 serviceAccount:
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::727646470302:role/passit-account-dev-irsa
+  create: false
+  name: account-sa  # Terraform이 생성한 ServiceAccount 사용
 s3:
   bucket: passit-dev-profile-images-bucket
