@@ -40,7 +40,7 @@ autoscaling:
   targetMemoryUtilizationPercentage: 80
 database:
   enabled: true
-  host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
+  host: passit-dev-aurora-cluster.cluster-crkykwekkr0w.ap-northeast-2.rds.amazonaws.com
   port: 3306
   name: passit_db
   user: admin
@@ -53,6 +53,7 @@ redis:
   ssl: true
 env:
   SPRING_PROFILES_ACTIVE: "production"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
