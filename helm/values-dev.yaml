@@ -52,12 +52,17 @@ redis:
   host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com"
   port: 6379
   password: ""
-  ssl: true
+  ssl: false
 env:
   SPRING_PROFILES_ACTIVE: "production"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
   # CORS 허용 Origin (CloudFront 도메인 포함)
   CORS_ALLOWED_ORIGINS: "https://dmvwgbcww82sl.cloudfront.net,http://localhost:3000,http://localhost:3001"
+  # 카카오 로그인 설정
+  # CloudFront를 통한 백엔드 콜백 URL
+  KAKAO_REDIRECT_URI: "https://dmvwgbcww82sl.cloudfront.net/api/auth/kakao/callback"
+  # 프론트엔드 배포 URL (카카오 로그인 후 리다이렉트)
+  FRONTEND_URL: "https://dmvwgbcww82sl.cloudfront.net"
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
