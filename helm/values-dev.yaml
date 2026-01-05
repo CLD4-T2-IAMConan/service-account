@@ -56,6 +56,8 @@ redis:
 env:
   SPRING_PROFILES_ACTIVE: "production"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  # CORS 허용 Origin (CloudFront 도메인 포함)
+  CORS_ALLOWED_ORIGINS: "https://dmvwgbcww82sl.cloudfront.net,http://localhost:3000,http://localhost:3001"
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
