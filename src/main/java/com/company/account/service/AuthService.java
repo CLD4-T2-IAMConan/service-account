@@ -110,19 +110,28 @@ public class AuthService {
         userRepository.save(user);
 
         // Refresh Token 메타정보 캐싱 (Redis)
-        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
-        RefreshTokenCache tokenCache = RefreshTokenCache.builder()
-            .userId(user.getUserId())
-            .token(refreshToken)
-            .isValid(true)
-            .expiredAt(LocalDateTime.now().plusDays(7))
-            .build();
-        redisTemplate.opsForValue().set(
-            refreshTokenKey,
-            tokenCache,
-            7,
-            TimeUnit.DAYS
-        );
+        // Redis 연결 실패 시에도 로그인은 정상 진행되도록 예외 처리
+        try {
+            String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
+            RefreshTokenCache tokenCache = RefreshTokenCache.builder()
+                .userId(user.getUserId())
+                .token(refreshToken)
+                .isValid(true)
+                .expiredAt(LocalDateTime.now().plusDays(7))
+                .build();
+            redisTemplate.opsForValue().set(
+                refreshTokenKey,
+                tokenCache,
+                7,
+                TimeUnit.DAYS
+            );
+            log.debug("Refresh token cached in Redis for user: {}", user.getUserId());
+        } catch (Exception e) {
+            // Redis 연결 실패 시 로그만 남기고 계속 진행
+            // DB에 Refresh Token이 저장되어 있으므로 로그인은 정상 동작
+            log.warn("Failed to cache refresh token in Redis for user: {}. Error: {}. Login will continue.", 
+                user.getUserId(), e.getMessage());
+        }
 
         log.info("User logged in successfully: {}", user.getUserId());
 
@@ -173,9 +182,15 @@ public class AuthService {
         // 사용자 ID 추출
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
 
-        // 1. Redis 캐시 확인
-        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(userId);
-        RefreshTokenCache cachedToken = (RefreshTokenCache) redisTemplate.opsForValue().get(refreshTokenKey);
+        // 1. Redis 캐시 확인 (Redis 연결 실패 시 DB로 fallback)
+        RefreshTokenCache cachedToken = null;
+        try {
+            String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(userId);
+            cachedToken = (RefreshTokenCache) redisTemplate.opsForValue().get(refreshTokenKey);
+        } catch (Exception e) {
+            log.warn("Failed to get refresh token from Redis cache for user: {}. Error: {}. Will query database.", 
+                userId, e.getMessage());
+        }
 
         if (cachedToken != null && cachedToken.getToken().equals(refreshToken) && cachedToken.getIsValid()) {
             log.debug("Refresh token found in cache for user: {}", userId);
@@ -209,14 +224,21 @@ public class AuthService {
             throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다");
         }
 
-        // 캐시 재생성
-        RefreshTokenCache newCache = RefreshTokenCache.builder()
-            .userId(user.getUserId())
-            .token(refreshToken)
-            .isValid(true)
-            .expiredAt(LocalDateTime.now().plusDays(7))
-            .build();
-        redisTemplate.opsForValue().set(refreshTokenKey, newCache, 7, TimeUnit.DAYS);
+        // 캐시 재생성 (Redis 연결 실패 시에도 토큰 갱신은 정상 진행)
+        try {
+            String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
+            RefreshTokenCache newCache = RefreshTokenCache.builder()
+                .userId(user.getUserId())
+                .token(refreshToken)
+                .isValid(true)
+                .expiredAt(LocalDateTime.now().plusDays(7))
+                .build();
+            redisTemplate.opsForValue().set(refreshTokenKey, newCache, 7, TimeUnit.DAYS);
+            log.debug("Refresh token cache regenerated in Redis for user: {}", user.getUserId());
+        } catch (Exception e) {
+            log.warn("Failed to regenerate refresh token cache in Redis for user: {}. Error: {}. Token refresh will continue.", 
+                user.getUserId(), e.getMessage());
+        }
 
         // 새로운 Access Token 생성
         String newAccessToken = jwtTokenProvider.createAccessToken(
@@ -376,19 +398,28 @@ public class AuthService {
         userRepository.save(user);
 
         // Refresh Token 메타정보 캐싱 (Redis)
-        String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
-        RefreshTokenCache tokenCache = RefreshTokenCache.builder()
-            .userId(user.getUserId())
-            .token(jwtRefreshToken)
-            .isValid(true)
-            .expiredAt(LocalDateTime.now().plusDays(7))
-            .build();
-        redisTemplate.opsForValue().set(
-            refreshTokenKey,
-            tokenCache,
-            7,
-            TimeUnit.DAYS
-        );
+        // Redis 연결 실패 시에도 로그인은 정상 진행되도록 예외 처리
+        try {
+            String refreshTokenKey = cacheKeyGenerator.refreshTokenKey(user.getUserId());
+            RefreshTokenCache tokenCache = RefreshTokenCache.builder()
+                .userId(user.getUserId())
+                .token(jwtRefreshToken)
+                .isValid(true)
+                .expiredAt(LocalDateTime.now().plusDays(7))
+                .build();
+            redisTemplate.opsForValue().set(
+                refreshTokenKey,
+                tokenCache,
+                7,
+                TimeUnit.DAYS
+            );
+            log.debug("Refresh token cached in Redis for user: {}", user.getUserId());
+        } catch (Exception e) {
+            // Redis 연결 실패 시 로그만 남기고 계속 진행
+            // DB에 Refresh Token이 저장되어 있으므로 로그인은 정상 동작
+            log.warn("Failed to cache refresh token in Redis for user: {}. Error: {}. Login will continue.", 
+                user.getUserId(), e.getMessage());
+        }
 
         log.info("Kakao login successful. User ID: {}", user.getUserId());
 
