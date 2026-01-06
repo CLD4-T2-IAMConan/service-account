@@ -33,7 +33,7 @@ public class AwsSnsSqsConfig {
     public SnsClient snsClient() {
         log.info("🔧 Initializing AWS SNS Client for region: {}", region);
 
-        SnsClient.Builder builder = SnsClient.builder()
+        var builder = SnsClient.builder()
                 .region(Region.of(region));
 
         if (accessKey != null && !accessKey.isEmpty() && secretKey != null && !secretKey.isEmpty()) {
@@ -53,7 +53,7 @@ public class AwsSnsSqsConfig {
     public SqsClient sqsClient() {
         log.info("🔧 Initializing AWS SQS Client for region: {}", region);
 
-        SqsClient.Builder builder = SqsClient.builder()
+        var builder = SqsClient.builder()
                 .region(Region.of(region));
 
         if (accessKey != null && !accessKey.isEmpty() && secretKey != null && !secretKey.isEmpty()) {
