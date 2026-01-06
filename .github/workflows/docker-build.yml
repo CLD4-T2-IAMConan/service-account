@@ -72,6 +72,8 @@ jobs:
 
           # Update dev values
           git checkout develop || git checkout -b develop
+          # Ensure submodules are initialized after branch switch
+          git submodule update --init --recursive
           VALUES_DEV_FILE="service-account/helm/values-dev.yaml"
           if [ -f "$VALUES_DEV_FILE" ]; then
             if command -v yq &> /dev/null; then
@@ -80,9 +82,18 @@ jobs:
               sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$VALUES_DEV_FILE"
               rm -f "${VALUES_DEV_FILE}.bak"
             fi
-            git add "$VALUES_DEV_FILE"
+            # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
+            cd service-account
+            git add helm/values-dev.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service dev image tag to $IMAGE_TAG [skip ci]"
+              git push origin main
+            fi
+            cd ..
+            # Passit 저장소에서 submodule 참조 업데이트
+            git add service-account
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: update account-service submodule reference [skip ci]"
               git push origin develop
             else
               echo "ℹ️  No changes to commit for dev values"
@@ -101,9 +112,18 @@ jobs:
               sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$VALUES_PROD_FILE"
               rm -f "${VALUES_PROD_FILE}.bak"
             fi
-            git add "$VALUES_PROD_FILE"
+            # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
+            cd service-account
+            git add helm/values-prod.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service prod image tag to $IMAGE_TAG [skip ci]"
+              git push origin main
+            fi
+            cd ..
+            # Passit 저장소에서 submodule 참조 업데이트
+            git add service-account
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: update account-service submodule reference [skip ci]"
               git push origin main
             else
               echo "ℹ️  No changes to commit for prod values"
