@@ -55,17 +55,18 @@ jobs:
 
       - name: Update Helm values in main repository
         env:
-          MAIN_REPO_PAT: ${{ secrets.MAIN_REPO_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           IMAGE_TAG="sha-${SHORT_SHA}"
 
-          git clone https://${MAIN_REPO_PAT}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
+          # Checkout Passit repository using GITHUB_TOKEN
+          git clone https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
           cd main-repo
-          
+
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
+
           # Update dev values
           git checkout develop || git checkout -b develop
           VALUES_DEV_FILE="service-account/helm/values-dev.yaml"
@@ -84,7 +85,7 @@ jobs:
               echo "ℹ️  No changes to commit for dev values"
             fi
           fi
-          
+
           # Update prod values (same SHA tag as dev)
           git checkout main || git checkout -b main
           VALUES_PROD_FILE="service-account/helm/values-prod.yaml"
