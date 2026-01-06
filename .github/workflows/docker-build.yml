@@ -53,39 +53,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update Helm values in main repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update image tag
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           IMAGE_TAG="sha-${SHORT_SHA}"
 
-          git clone https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
-          cd main-repo
-
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
-          # Update dev values
-          git checkout develop || git checkout -b develop
-          if [ -f "service-account/helm/values-dev.yaml" ]; then
-            sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" service-account/helm/values-dev.yaml
-            rm -f service-account/helm/values-dev.yaml.bak
-            git add service-account/helm/values-dev.yaml
-            if ! git diff --staged --quiet; then
-              git commit -m "chore: update account-service dev image tag to $IMAGE_TAG [skip ci]"
-              git push origin develop
+          # Update image tag in values files
+          for file in helm/values-dev.yaml helm/values-prod.yaml; do
+            if [ -f "$file" ]; then
+              sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$file"
+              rm -f "${file}.bak"
+              git add "$file"
             fi
-          fi
+          done
 
-          # Update prod values
-          git checkout main || git checkout -b main
-          if [ -f "service-account/helm/values-prod.yaml" ]; then
-            sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" service-account/helm/values-prod.yaml
-            rm -f service-account/helm/values-prod.yaml.bak
-            git add service-account/helm/values-prod.yaml
-            if ! git diff --staged --quiet; then
-              git commit -m "chore: update account-service prod image tag to $IMAGE_TAG [skip ci]"
-              git push origin main
-            fi
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: update image tag to $IMAGE_TAG [skip ci]"
+            git push origin main
           fi
