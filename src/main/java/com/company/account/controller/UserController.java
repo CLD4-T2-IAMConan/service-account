@@ -46,7 +46,26 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(Authentication authentication) {
-        Long userId = Long.valueOf(authentication.getName());
+        if (authentication == null) {
+            log.error("Authentication is null - JWT token may be missing or invalid");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증이 필요합니다. 로그인 후 다시 시도해주세요."));
+        }
+
+        Long userId;
+        try {
+            // Authentication의 principal이 Long 타입이면 직접 사용, String이면 파싱
+            if (authentication.getPrincipal() instanceof Long) {
+                userId = (Long) authentication.getPrincipal();
+            } else {
+                userId = Long.valueOf(authentication.getName());
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract userId from authentication: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증 정보를 확인할 수 없습니다."));
+        }
+
         log.info("Request to get my info for user ID: {}", userId);
 
         UserResponse response = userService.getUserById(userId);
