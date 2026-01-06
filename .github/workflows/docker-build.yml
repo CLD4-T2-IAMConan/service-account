@@ -61,8 +61,11 @@ jobs:
           IMAGE_TAG="sha-${SHORT_SHA}"
 
           # Checkout Passit repository using GITHUB_TOKEN
-          git clone https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
+          git clone --recurse-submodules https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
           cd main-repo
+
+          # Ensure submodules are initialized
+          git submodule update --init --recursive
 
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -88,6 +91,8 @@ jobs:
 
           # Update prod values (same SHA tag as dev)
           git checkout main || git checkout -b main
+          # Ensure submodules are initialized after branch switch
+          git submodule update --init --recursive
           VALUES_PROD_FILE="service-account/helm/values-prod.yaml"
           if [ -f "$VALUES_PROD_FILE" ]; then
             if command -v yq &> /dev/null; then
