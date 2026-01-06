@@ -84,10 +84,12 @@ jobs:
             fi
             # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
             cd service-account
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
             git add helm/values-dev.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service dev image tag to $IMAGE_TAG [skip ci]"
-              git push origin main
+              git push https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/service-account.git main
             fi
             cd ..
             # Passit 저장소에서 submodule 참조 업데이트
@@ -114,10 +116,12 @@ jobs:
             fi
             # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
             cd service-account
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
             git add helm/values-prod.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service prod image tag to $IMAGE_TAG [skip ci]"
-              git push origin main
+              git push https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/service-account.git main
             fi
             cd ..
             # Passit 저장소에서 submodule 참조 업데이트
