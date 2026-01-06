@@ -74,6 +74,9 @@ dependencies {
 
     // AWS SES for email sending
     implementation 'software.amazon.awssdk:ses'
+    // AWS SNS/SQS for event-driven architecture
+    implementation 'software.amazon.awssdk:sns'
+    implementation 'software.amazon.awssdk:sqs'
     implementation 'software.amazon.awssdk:auth'
     implementation 'software.amazon.awssdk:url-connection-client'
 }
