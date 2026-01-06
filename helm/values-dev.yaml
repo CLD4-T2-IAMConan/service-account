@@ -52,7 +52,7 @@ redis:
   host: "passit-dev-valkey.q2tpkl.ng.0001.apn2.cache.amazonaws.com"
   port: 6379
   password: ""
-  ssl: false
+  ssl: true
 env:
   SPRING_PROFILES_ACTIVE: "production"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
