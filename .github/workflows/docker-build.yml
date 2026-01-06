@@ -60,78 +60,32 @@ jobs:
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           IMAGE_TAG="sha-${SHORT_SHA}"
 
-          # Checkout Passit repository using GITHUB_TOKEN
-          git clone --recurse-submodules https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
+          git clone https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/Passit.git main-repo
           cd main-repo
 
-          # Ensure submodules are initialized
-          git submodule update --init --recursive
-
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
           # Update dev values
           git checkout develop || git checkout -b develop
-          # Ensure submodules are initialized after branch switch
-          git submodule update --init --recursive
-          VALUES_DEV_FILE="service-account/helm/values-dev.yaml"
-          if [ -f "$VALUES_DEV_FILE" ]; then
-            if command -v yq &> /dev/null; then
-              yq eval ".image.tag = \"$IMAGE_TAG\"" -i "$VALUES_DEV_FILE"
-            else
-              sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$VALUES_DEV_FILE"
-              rm -f "${VALUES_DEV_FILE}.bak"
-            fi
-            # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
-            cd service-account
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git config user.name "github-actions[bot]"
-            git add helm/values-dev.yaml
+          if [ -f "service-account/helm/values-dev.yaml" ]; then
+            sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" service-account/helm/values-dev.yaml
+            rm -f service-account/helm/values-dev.yaml.bak
+            git add service-account/helm/values-dev.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service dev image tag to $IMAGE_TAG [skip ci]"
-              git push https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/service-account.git main
-            fi
-            cd ..
-            # Passit 저장소에서 submodule 참조 업데이트
-            git add service-account
-            if ! git diff --staged --quiet; then
-              git commit -m "chore: update account-service submodule reference [skip ci]"
               git push origin develop
-            else
-              echo "ℹ️  No changes to commit for dev values"
             fi
           fi
 
-          # Update prod values (same SHA tag as dev)
+          # Update prod values
           git checkout main || git checkout -b main
-          # Ensure submodules are initialized after branch switch
-          git submodule update --init --recursive
-          VALUES_PROD_FILE="service-account/helm/values-prod.yaml"
-          if [ -f "$VALUES_PROD_FILE" ]; then
-            if command -v yq &> /dev/null; then
-              yq eval ".image.tag = \"$IMAGE_TAG\"" -i "$VALUES_PROD_FILE"
-            else
-              sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" "$VALUES_PROD_FILE"
-              rm -f "${VALUES_PROD_FILE}.bak"
-            fi
-            # Submodule 내부 파일이므로 submodule 디렉토리로 이동하여 커밋
-            cd service-account
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git config user.name "github-actions[bot]"
-            git add helm/values-prod.yaml
+          if [ -f "service-account/helm/values-prod.yaml" ]; then
+            sed -i.bak "s|tag:.*|tag: \"$IMAGE_TAG\"|g" service-account/helm/values-prod.yaml
+            rm -f service-account/helm/values-prod.yaml.bak
+            git add service-account/helm/values-prod.yaml
             if ! git diff --staged --quiet; then
               git commit -m "chore: update account-service prod image tag to $IMAGE_TAG [skip ci]"
-              git push https://${GITHUB_TOKEN}@github.com/CLD4-T2-IAMConan/service-account.git main
-            fi
-            cd ..
-            # Passit 저장소에서 submodule 참조 업데이트
-            git add service-account
-            if ! git diff --staged --quiet; then
-              git commit -m "chore: update account-service submodule reference [skip ci]"
               git push origin main
-            else
-              echo "ℹ️  No changes to commit for prod values"
             fi
-          else
-            echo "⚠️  Helm values file not found: $VALUES_PROD_FILE"
           fi
