@@ -1,0 +1,72 @@
+replicaCount: 2
+image:
+  repository: account-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8081
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: passit-dr-alb
+    alb.ingress.kubernetes.io/load-balancer-name: passit-dr-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+  hosts:
+    - host: account-service.passit.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+database:
+  enabled: true
+  host: passit-dr-aurora-cluster.cluster-c1ky2k6y6s3s.ap-northeast-1.rds.amazonaws.com
+  port: 3306
+  name: passit_db
+  user: passit_user
+  password: passit_password
+# Valkey 설정 (ElastiCache for Valkey)
+redis:
+  host: "passit-dr-valkey.kqxlkn.ng.0001.apne1.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
+  port: 6379
+  password: "" # ElastiCache 비밀번호가 있는 경우 설정
+  ssl: true
+env:
+  SPRING_PROFILES_ACTIVE: "production"
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  initialDelaySeconds: 70
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8081
+  initialDelaySeconds: 60
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+s3:
+  bucket: passit-dr-profile-images-bucket
