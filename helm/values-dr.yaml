@@ -70,3 +70,7 @@ readinessProbe:
   failureThreshold: 3
 s3:
   bucket: passit-dr-profile-images-bucket
+
+monitoring:
+  enabled: true
+  interval: 15s

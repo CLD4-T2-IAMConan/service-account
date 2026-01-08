@@ -79,3 +79,7 @@ s3:
 serviceAccount:
   create: false
   name: account-sa # Terraform이 생성한 ServiceAccount 사용
+
+monitoring:
+  enabled: true
+  interval: 15s
