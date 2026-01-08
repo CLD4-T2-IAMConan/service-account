@@ -3,6 +3,7 @@ package com.company.account.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/test/sns-sqs")
 @RequiredArgsConstructor
+@ConditionalOnBean({SnsClient.class, SqsClient.class})
 public class SnsSqsInfoController {
 
     private final SnsClient snsClient;
