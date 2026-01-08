@@ -48,7 +48,7 @@ database:
   password: passit_password
 # Valkey 설정 (ElastiCache for Valkey)
 redis:
-  host: "passit-dr-valkey.kqxlkn.ng.0001.apne1.cache.amazonaws.com" # ElastiCache for Valkey 엔드포인트로 변경 필요
+  host: passit-dr-valkey.kqxlkn.ng.0001.apne1.cache.amazonaws.com
   port: 6379
   password: "" # ElastiCache 비밀번호가 있는 경우 설정
   ssl: true
