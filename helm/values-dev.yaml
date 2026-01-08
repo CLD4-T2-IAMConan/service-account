@@ -2,7 +2,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/cld4-t2-iamconan/service-account
   pullPolicy: Always
-  tag: "sha-733865f"
+  tag: "sha-1479cd0"
 
 service:
   type: ClusterIP
@@ -89,3 +89,7 @@ serviceAccount:
   name: account-sa # Terraform이 생성한 ServiceAccount 사용
 s3:
   bucket: passit-dev-profile-images-bucket
+
+monitoring:
+  enabled: true
+  interval: 15s

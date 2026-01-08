@@ -41,6 +41,8 @@ dependencies {
     // Jackson for JSON serialization in cache
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'

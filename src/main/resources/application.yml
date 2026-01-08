@@ -73,10 +73,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: service-account
   health:
     # 메일 서비스 health check 비활성화 (로컬 개발 환경에서는 LocalEmailService 사용)
     mail:

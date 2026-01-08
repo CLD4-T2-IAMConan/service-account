@@ -1,0 +1,32 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "service-account.fullname" . }}-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: service-account.rules
+      rules:
+        - alert: ServiceAccountHigh5xxErrorRate
+          expr: |
+            100 *
+            sum(rate(http_server_requests_seconds_count{
+              application="service-account",
+              status=~"5.."
+            }[1m]))
+            /
+            sum(rate(http_server_requests_seconds_count{
+              application="service-account"
+            }[1m]))
+            > 5
+          for: 1m
+          labels:
+            severity: critical
+            service: service-account
+          annotations:
+            summary: "Service Account 5xx error rate high"
+            description: "service-account 5xx error rate > 5% for 1 minute"
+  {{- end }}

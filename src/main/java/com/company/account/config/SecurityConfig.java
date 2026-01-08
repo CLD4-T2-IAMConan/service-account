@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "/actuator/**",          // Actuator Health Check
                                 "/error"
                         ).permitAll()
+                        // Prometheus 메트릭 엔드포인트 허용
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         // 사용자 조회 (GET) - 채팅방에서 판매자 정보 조회용
                         .requestMatchers("GET", "/api/users/{userId}").permitAll()
                         .requestMatchers("GET", "/api/users/email/**").permitAll()
