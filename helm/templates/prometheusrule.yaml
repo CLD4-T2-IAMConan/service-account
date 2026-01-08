@@ -2,7 +2,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "service-account.fullname" . }}-alerts
+  name: {{ include "template-service.fullname" . }}-alerts
   namespace: monitoring
   labels:
     release: kube-prometheus-stack
