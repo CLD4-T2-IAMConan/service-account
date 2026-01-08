@@ -2,7 +2,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/cld4-t2-iamconan/service-account
   pullPolicy: Always
-  tag: "sha-bab2951"
+  tag: "sha-073a88f"
 
 service:
   type: ClusterIP
