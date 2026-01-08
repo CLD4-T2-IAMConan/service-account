@@ -2,7 +2,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/cld4-t2-iamconan/service-account
   pullPolicy: Always
-  tag: "sha-593458b"
+  tag: "sha-e2b2cf5"
 
 service:
   type: ClusterIP
@@ -19,6 +19,9 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
     alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    alb.ingress.kubernetes.io/healthcheck-port: "8081"
+    alb.ingress.kubernetes.io/success-codes: "200"
   hosts:
     # host 필드 제거 - Path 기반 라우팅만 사용 (모든 호스트에 매칭)
     - paths:
