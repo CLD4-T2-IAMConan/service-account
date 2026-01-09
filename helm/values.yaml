@@ -54,11 +54,19 @@ redis:
 env:
   SPRING_PROFILES_ACTIVE: "production"
 
+startupProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  # 10초 간격으로 30번 시도 = 총 300초(5분) 동안 앱이 뜰 때까지 기다려줌
+  failureThreshold: 30
+  periodSeconds: 10
+
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
     port: 8081
-  initialDelaySeconds: 70
+  initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 3
@@ -67,7 +75,7 @@ readinessProbe:
   httpGet:
     path: /actuator/health/readiness
     port: 8081
-  initialDelaySeconds: 60
+  initialDelaySeconds: 150
   periodSeconds: 5
   timeoutSeconds: 3
   failureThreshold: 3

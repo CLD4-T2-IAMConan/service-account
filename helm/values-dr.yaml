@@ -2,7 +2,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/cld4-t2-iamconan/service-account
   pullPolicy: Always
-  tag: "sha-ebfcbf9"
+  tag: "sha-8431f5b"
 imagePullSecrets:
   - name: ghcr-pull-secret
 service:
@@ -41,7 +41,7 @@ autoscaling:
   targetMemoryUtilizationPercentage: 80
 database:
   enabled: true
-  host: passit-dr-aurora-cluster.cluster-c1ky2k6y6s3s.ap-northeast-1.rds.amazonaws.com
+  host: passit-dev-aurora-cluster.cluster-cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com
   port: 3306
   name: passit_db
   user: passit_user
@@ -54,11 +54,18 @@ redis:
   ssl: true
 env:
   SPRING_PROFILES_ACTIVE: "production"
+startupProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8081
+  # 10초 간격으로 30번 시도 = 총 300초(5분) 동안 앱이 뜰 때까지 기다려줌
+  failureThreshold: 30
+  periodSeconds: 10
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
     port: 8081
-  initialDelaySeconds: 70
+  initialDelaySeconds: 180
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 3
@@ -66,7 +73,7 @@ readinessProbe:
   httpGet:
     path: /actuator/health/readiness
     port: 8081
-  initialDelaySeconds: 60
+  initialDelaySeconds: 150
   periodSeconds: 5
   timeoutSeconds: 3
   failureThreshold: 3
