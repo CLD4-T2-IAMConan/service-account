@@ -1,4 +1,4 @@
-fullnameOverride: "account-service"
+fullnameOverride: account-service-prod
 replicaCount: 2
 image:
   repository: ghcr.io/cld4-t2-iamconan/service-account
