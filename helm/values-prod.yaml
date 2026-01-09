@@ -56,18 +56,28 @@ livenessProbe:
   httpGet:
     path: /actuator/health/liveness
     port: 8081
-  initialDelaySeconds: 180
+  initialDelaySeconds: 300
   periodSeconds: 10
   timeoutSeconds: 3
-  failureThreshold: 3
+  failureThreshold: 5
 readinessProbe:
   httpGet:
     path: /actuator/health/readiness
     port: 8081
-  initialDelaySeconds: 120
+  initialDelaySeconds: 240
   periodSeconds: 5
   timeoutSeconds: 3
-  failureThreshold: 3
+  failureThreshold: 5
+
+# 스프링이 RDS를 정확히 찾도록 URL을 직접 명시(H2 구동 방지)
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "none" # 운영은 안전하게 none 또는 validate 권장
+  # 아래 두 줄을 추가하여 Spring Boot가 RDS 정보를 확실히 읽게 함
+  SPRING_DATASOURCE_URL: "jdbc:mysql://passit-prod-aurora-cluster.cluster-crkykwekkr0w.ap-northeast-2.rds.amazonaws.com:3306/passit_db"
+  SPRING_DATASOURCE_USERNAME: "passit_user"
+  SPRING_DATASOURCE_PASSWORD: "passit_password"
+
 # Valkey 설정 (ElastiCache for Valkey)
 redis:
   host: "passit-prod-valkey.ri85pe.ng.0001.apn2.cache.amazonaws.com"
